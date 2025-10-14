@@ -9,3 +9,22 @@ Future<void> main() async {
   );
   runApp(const MyApp());
 }
+
+class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Style Her App',
+      home: Scaffold(
+        appBar: AppBar(
+          title: const Text('Style Her App'),
+        ),
+        body: const Center(
+          child: Text('Welcome to Style Her App!'),
+        ),
+      ),
+    );
+  }
+}
