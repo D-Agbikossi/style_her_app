@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "908197834599",
+    "project_id": "styleher-8e2fb",
+    "storage_bucket": "styleher-8e2fb.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:908197834599:android:c25d0fd924df0f94ed89c2",
+        "android_client_info": {
+          "package_name": "com.example.frontend"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDN6qW13a4Lm-Zgf2zch2cfXsjYscSaAts"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:908197834599:android:43d432907c94f8aced89c2",
+        "android_client_info": {
+          "package_name": "com.styleher.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDN6qW13a4Lm-Zgf2zch2cfXsjYscSaAts"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
