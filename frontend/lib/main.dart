@@ -19,6 +19,10 @@ final Color kPrimaryBlue = hexToColor('#2C5BB1'); // Used for icons/buttons
 
 // --- Main Entry Point ---
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'services/firestore_test.dart'; // 👈 import the test file
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   try {
@@ -125,6 +129,24 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         elevation: 8,
         type: BottomNavigationBarType.fixed, // Important for more than 3 items
         onTap: _onItemTapped,
+      ),
+    );
+  }
+}
+
+class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Style Her App')),
+      body: const Center(
+        child: Text(
+          'Welcome to Style Her — Firestore test ran successfully!',
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 18),
+        ),
       ),
     );
   }
