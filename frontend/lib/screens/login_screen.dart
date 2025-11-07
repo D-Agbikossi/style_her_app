@@ -185,9 +185,7 @@ class _LoginScreenState extends State<LoginScreen> {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton.icon(
-        icon: Icon(
-          iconData,
-        ), // <-- REPLACE with Image.asset(iconPath, height: 24)
+        icon: Icon(iconData), // REPLACE with Image.asset(iconPath, height: 24)
         label: Text(label),
         style: ElevatedButton.styleFrom(
           backgroundColor: backgroundColor,
