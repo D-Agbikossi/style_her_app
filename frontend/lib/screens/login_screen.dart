@@ -130,9 +130,6 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  // Re-using the same helper widgets from SignUp screen
-  // In a real app, these would be in a separate 'widgets' file.
-
   Widget _buildTextField(String label, String hint) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
