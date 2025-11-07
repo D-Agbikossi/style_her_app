@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/screens/forgot_password_screen.dart';
-import 'package:frontend/screens/signup_screen.dart'
+import 'package:frontend/screens/signup_screen.dart';
 import 'package:frontend/screens/interest_screen.dart';
 import '../main.dart';
 
