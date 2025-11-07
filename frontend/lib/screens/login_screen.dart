@@ -64,7 +64,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       Navigator.of(context).pushReplacement(
                         MaterialPageRoute(
                           builder: (context) => const InterestScreen(),
-                        ), // <-- UPDATED THIS LINE
+                        ),
                       );
                     },
                     child: const Text("Login"),
