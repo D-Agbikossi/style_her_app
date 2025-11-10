@@ -1,9 +1,97 @@
+/**
+ * Forgot Password Screen
+ * 
+ * This screen handles password reset functionality:
+ * - Email input form for password reset
+ * - Form validation for email format
+ * - Password reset request handling
+ * - Loading states and error handling
+ * - Navigation back to login screen
+ */
+
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+// Provider imports
+import '../providers/auth_provider.dart';
+import '../utils/validators.dart';
+
+// Theme imports
 import '../main.dart';
 
-class ForgotPasswordScreen extends StatelessWidget {
+/**
+ * Forgot Password Screen
+ * 
+ * Main widget for password reset functionality
+ */
+class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
 
+  @override
+  State<ForgotPasswordScreen> createState() => _ForgotPasswordState();
+}
+
+/**
+ * Forgot Password Screen State
+ * 
+ * Manages form state, email input, and password reset process
+ */
+class _ForgotPasswordState extends State<ForgotPasswordScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final _emailController = TextEditingController();
+  bool _isLoading = false;
+
+  /**
+   * Clean up resources when widget is disposed
+   * Prevents memory leaks by disposing controllers
+   */
+  @override
+  void dispose() {
+    _emailController.dispose();
+    super.dispose();
+  }
+
+  /**
+   * Handle password reset form submission
+   * Validates email format and sends reset email
+   * Shows success/error messages and navigates back on success
+   */
+  Future<void> _handleResetPassword() async {
+    if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isLoading = true;
+      });
+
+      try {
+        final authProvider = Provider.of<AuthProvider>(context, listen: false);
+        await authProvider.resetPassword(_emailController.text.trim());
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Password reset email sent!')),
+          );
+          Navigator.of(context).pop();
+        }
+      } catch (error) {
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(error.toString())));
+        }
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+      }
+    }
+  }
+
+  /**
+   * Build the forgot password screen UI
+   * Includes app bar, form with email field, and reset button
+   */
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -30,16 +118,22 @@ class ForgotPasswordScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 60),
-                _buildTextField("Email Address", "Input email address"),
+                Form(
+                  key: _formKey,
+                  child: Column(children: [_buildEmailField()]),
+                ),
                 const SizedBox(height: 40),
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () {
-                      // Add reset logic
-                      Navigator.of(context).pop();
-                    },
-                    child: const Text("Reset Password"),
+                    onPressed: _isLoading ? null : _handleResetPassword,
+                    child: _isLoading
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Text("Reset Password"),
                   ),
                 ),
               ],
@@ -50,12 +144,28 @@ class ForgotPasswordScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTextField(String label, String hint) {
+  /**
+   * Build email input field with validation
+   * Uses validateEmail function from validators utility
+   */
+  Widget _buildEmailField() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        const Text(
+          "Email Address",
+          style: TextStyle(fontWeight: FontWeight.w600),
+        ),
         const SizedBox(height: 8),
-        TextFormField(decoration: InputDecoration(hintText: hint)),
+        TextFormField(
+          controller: _emailController,
+          keyboardType: TextInputType.emailAddress,
+          validator: validateEmail,
+          decoration: const InputDecoration(
+            hintText: "Input email address",
+            border: OutlineInputBorder(),
+          ),
+        ),
       ],
     );
   }

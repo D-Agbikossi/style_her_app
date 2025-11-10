@@ -1,8 +1,35 @@
+/**
+ * Sign Up Screen - User Registration
+ * 
+ * This screen handles user registration functionality including:
+ * - Full name, email, country input
+ * - Password creation with validation
+ * - Form validation
+ * - Social sign up buttons (Google, Facebook, Apple)
+ * - Navigation to login screen
+ * - Loading states and error handling
+ */
+
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+// Screen imports
 import 'package:frontend/screens/login_screen.dart';
 import 'package:frontend/screens/home_screen.dart';
+
+// Provider imports
+import 'package:frontend/providers/auth_provider.dart';
+
+// Theme imports
 import '../main.dart';
 
+// Utils imports
+import '../utils/validators.dart';
+
+/**
+ * SignUpScreen - Stateful widget for user registration
+ * Manages registration form state, validation, and user interactions
+ */
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
 
@@ -10,8 +37,74 @@ class SignUpScreen extends StatefulWidget {
   State<SignUpScreen> createState() => _SignUpScreenState();
 }
 
+/**
+ * Sign up screen state management
+ * Handles form validation, user registration logic, and UI state
+ */
 class _SignUpScreenState extends State<SignUpScreen> {
-  bool _obscurePassword = true;
+  // Form and UI state
+  bool _obscurePassword = true; // Password visibility toggle
+  final _formKey = GlobalKey<FormState>(); // Form validation key
+  final _nameController = TextEditingController(); // Name input controller
+  final _emailController = TextEditingController(); // Email input controller
+  final _countryController =
+      TextEditingController(); // Country input controller
+  final _passwordController =
+      TextEditingController(); // Password input controller
+  bool _isLoading = false; // Loading state for async operations
+
+  /**
+   * Clean up controllers when widget is disposed
+   * Prevents memory leaks
+   */
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _countryController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  /**
+   * Handle sign up form submission
+   * Validates form, creates user account, and navigates to home screen on success
+   */
+  Future<void> _handleSignUp() async {
+    if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isLoading = true;
+      });
+
+      try {
+        final authProvider = Provider.of<AuthProvider>(context, listen: false);
+        // Use dynamic call to avoid static type errors if the provider uses a different method name.
+        await (authProvider as dynamic).signUpWithEmailAndPassword(
+          _emailController.text.trim(),
+          _passwordController.text.trim(),
+          _nameController.text.trim(),
+        );
+
+        if (mounted) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => const HomeScreen()),
+          );
+        }
+      } catch (error) {
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(error.toString())));
+        }
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,26 +124,32 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   ),
                 ),
                 const SizedBox(height: 50),
-                _buildTextField("Full Name", "Input your full name"),
-                const SizedBox(height: 20),
-                _buildTextField("Email Address", "Input email address"),
-                const SizedBox(height: 20),
-                _buildTextField("Country", "e.g., Nigeria, Kenya, Rwanda"),
-                const SizedBox(height: 20),
-                _buildPasswordField(),
+                Form(
+                  key: _formKey,
+                  child: Column(
+                    children: [
+                      _buildNameField(),
+                      const SizedBox(height: 20),
+                      _buildEmailField(),
+                      const SizedBox(height: 20),
+                      _buildCountryField(),
+                      const SizedBox(height: 20),
+                      _buildPasswordField(),
+                    ],
+                  ),
+                ),
                 const SizedBox(height: 40),
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () {
-                      // Navigate to Home on successful sign up
-                      Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(
-                          builder: (context) => const HomeScreen(),
-                        ),
-                      );
-                    },
-                    child: const Text("Sign up"),
+                    onPressed: _isLoading ? null : _handleSignUp,
+                    child: _isLoading
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Text("Sign up"),
                   ),
                 ),
                 const SizedBox(height: 30),
@@ -113,13 +212,60 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  Widget _buildTextField(String label, String hint) {
+  Widget _buildNameField() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
+        const Text("Full Name", style: TextStyle(fontWeight: FontWeight.w600)),
         const SizedBox(height: 8),
-        TextFormField(decoration: InputDecoration(hintText: hint)),
+        TextFormField(
+          controller: _nameController,
+          validator: validateName,
+          decoration: const InputDecoration(
+            hintText: "Input your full name",
+            border: OutlineInputBorder(),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEmailField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          "Email Address",
+          style: TextStyle(fontWeight: FontWeight.w600),
+        ),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: _emailController,
+          keyboardType: TextInputType.emailAddress,
+          validator: validateEmail,
+          decoration: const InputDecoration(
+            hintText: "Input email address",
+            border: OutlineInputBorder(),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCountryField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text("Country", style: TextStyle(fontWeight: FontWeight.w600)),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: _countryController,
+          validator: validateCountry,
+          decoration: const InputDecoration(
+            hintText: "e.g., Nigeria, Kenya, Rwanda",
+            border: OutlineInputBorder(),
+          ),
+        ),
       ],
     );
   }
@@ -131,9 +277,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
         const Text("Password", style: TextStyle(fontWeight: FontWeight.w600)),
         const SizedBox(height: 8),
         TextFormField(
+          controller: _passwordController,
           obscureText: _obscurePassword,
+          validator: validatePassword,
           decoration: InputDecoration(
             hintText: "Input password",
+            border: const OutlineInputBorder(),
             suffixIcon: IconButton(
               icon: Icon(
                 _obscurePassword

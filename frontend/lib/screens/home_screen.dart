@@ -1,7 +1,34 @@
+/**
+ * Home Screen
+ * 
+ * This screen displays the main dashboard with:
+ * - User greeting with profile name
+ * - Search functionality for courses
+ * - Special offer banner with page indicator
+ * - Popular courses section with category filtering
+ * - Top mentors section
+ * - Real-time course data from provider
+ */
+
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
+
+// Provider imports
+import '../providers/auth_provider.dart';
+import '../providers/course_provider.dart';
+
+// Model imports
+import '../models/course.dart';
+
+// Theme imports
 import '../main.dart';
 
+/**
+ * Home Screen
+ * 
+ * Main widget for the home dashboard
+ */
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -9,11 +36,56 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
+/**
+ * Home Screen State
+ * 
+ * Manages banner controller, category selection, search functionality
+ * and course data loading
+ */
 class _HomeScreenState extends State<HomeScreen> {
+  /**
+   * Controller for the special offer banner page view
+   */
   final PageController _bannerController = PageController();
+
+  /**
+   * Currently selected course category for filtering
+   */
   String _selectedCategory = "All";
+
+  /**
+   * Available course categories
+   */
   final List<String> _categories = ["All", "Make Up", "Hair Styling", "Arts"];
 
+  /**
+   * Current search query for course filtering
+   */
+  String _searchQuery = "";
+
+/**
+   * Initialize screen state
+   * Loads courses data after widget is built
+   */
+  @override
+  void initState() {
+    super.initState();
+    // Load courses when the screen loads
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final courseProvider = Provider.of<CourseProvider>(context, listen: false);
+      courseProvider.fetchAllCourses();
+      courseProvider.fetchPopularCourses();
+    });
+  }
+
+/**
+   * Build the home screen UI
+   * Includes header, search, banner, categories, courses, and mentors
+   */
+/**
+   * Build the course card UI
+   * Shows thumbnail, title, category, rating, and module count
+   */
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -25,7 +97,7 @@ class _HomeScreenState extends State<HomeScreen> {
               _buildHeader(),
               _buildSearchBar(),
               _buildSpecialOfferBanner(),
-              _buildSectionHeader("Popular Courses"), // Corrected spelling
+              _buildSectionHeader("Popular Courses"),
               _buildCategoryChips(),
               _buildPopularCoursesList(),
               _buildSectionHeader("Top Mentor"),
@@ -37,25 +109,31 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+/**
+   * Build the header section with user greeting and notification icon
+   */
   Widget _buildHeader() {
+    final authProvider = Provider.of<AuthProvider>(context);
+    final userName = authProvider.profile?.displayName ?? 'User';
+    
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Column(
+          Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                "Hi, ALEX",
-                style: TextStyle(
+                "Hi, ${userName.toUpperCase()}",
+                style: const TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF4A6FDB),
                 ),
               ),
-              SizedBox(height: 4),
-              Text(
+              const SizedBox(height: 4),
+              const Text(
                 "What would you like to learn Today?",
                 style: TextStyle(fontSize: 14, color: Colors.grey),
               ),
@@ -71,10 +149,20 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+/**
+   * Build the search bar for course filtering
+   */
   Widget _buildSearchBar() {
+    final courseProvider = Provider.of<CourseProvider>(context);
+    
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       child: TextField(
+        onChanged: (value) {
+          setState(() {
+            _searchQuery = value;
+          });
+        },
         decoration: InputDecoration(
           hintText: "Search Courses",
           prefixIcon: Icon(Icons.search, color: Colors.grey[500]),
@@ -97,6 +185,9 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+/**
+   * Build the special offer banner with discount information
+   */
   Widget _buildSpecialOfferBanner() {
     return Padding(
       padding: const EdgeInsets.all(20),
@@ -175,6 +266,11 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+/**
+   * Build a section header with title and "SEE ALL" button
+   * 
+   * @param title The section title
+   */
   Widget _buildSectionHeader(String title) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -204,6 +300,9 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+/**
+   * Build category filter chips for course filtering
+   */
   Widget _buildCategoryChips() {
     return SizedBox(
       height: 50,
@@ -239,49 +338,50 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+/**
+   * Build the popular courses horizontal list
+   * Shows loading state, empty state, or course cards
+   */
   Widget _buildPopularCoursesList() {
+    final courseProvider = Provider.of<CourseProvider>(context);
+    final courses = courseProvider.popularCourses;
+    
+    if (courseProvider.isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    
+    if (courses.isEmpty) {
+      return const Center(
+        child: Text('No courses available'),
+      );
+    }
+
     return SizedBox(
       height: 250,
-      child: ListView(
+      child: ListView.builder(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 15),
-        children: const [
-          _CourseCard(
-            title: "Introduction To Make Up",
-            category: "Make Up",
-            rating: 4.2,
-            modules: 8,
-            level: "Beginner",
-          ),
-          _CourseCard(
-            title: "Advanced Hair Styling",
-            category: "Hair Styling",
-            rating: 4.8,
-            modules: 12,
-            level: "Advanced",
-            price: 400,
-          ),
-          _CourseCard(
-            title: "Advanced Hair Styling",
-            category: "Hair Styling",
-            rating: 4.8,
-            modules: 12,
-            level: "Advanced",
-            price: 400,
-          ),
-          _CourseCard(
-            title: "Advanced Hair Styling",
-            category: "Hair Styling",
-            rating: 4.8,
-            modules: 12,
-            level: "Advanced",
-            price: 400,
-          ),
-        ],
+        itemCount: courses.length,
+        itemBuilder: (context, index) {
+          final course = courses[index];
+          return _CourseCard(
+            title: course.title,
+            category: course.category,
+            rating: course.rating,
+            modules: course.lessonCount,
+            level: course.difficulty,
+            price: course.isFree ? null : course.price,
+            thumbnailUrl: course.thumbnailUrl,
+          );
+        },
       ),
     );
   }
 
+/**
+   * Build the top mentors horizontal list
+   * Shows mentor avatars and names
+   */
   Widget _buildTopMentorList() {
     final List<String> mentors = ["Precious", "Brunelle", "Judith", "Jane"];
     return SizedBox(
@@ -314,11 +414,37 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
+/**
+ * Course Card Widget
+ * 
+ * Reusable card component for displaying course information
+ */
 class _CourseCard extends StatelessWidget {
+  /**
+   * Course title
+   */
   final String title, category, level;
+  
+  /**
+   * Course rating
+   */
   final double rating;
+  
+  /**
+   * Number of modules in the course
+   */
   final int modules;
+  
+  /**
+   * Course price (null if free)
+   */
   final double? price;
+  
+  /**
+   * Course thumbnail image URL
+   */
+  final String? thumbnailUrl;
+  
   const _CourseCard({
     required this.title,
     required this.category,
@@ -326,6 +452,7 @@ class _CourseCard extends StatelessWidget {
     required this.rating,
     required this.modules,
     this.price,
+    this.thumbnailUrl,
   });
 
   @override
@@ -355,10 +482,18 @@ class _CourseCard extends StatelessWidget {
               borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(15),
               ),
+              image: thumbnailUrl != null
+                  ? DecorationImage(
+                      image: NetworkImage(thumbnailUrl!),
+                      fit: BoxFit.cover,
+                    )
+                  : null,
             ),
-            child: Center(
-              child: Icon(Icons.videocam, color: Colors.white30, size: 50),
-            ),
+            child: thumbnailUrl == null
+                ? Center(
+                    child: Icon(Icons.videocam, color: Colors.white30, size: 50),
+                  )
+                : null,
           ),
           Padding(
             padding: const EdgeInsets.symmetric(

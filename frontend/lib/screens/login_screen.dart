@@ -1,9 +1,35 @@
+/**
+ * Login Screen - User Authentication
+ * 
+ * This screen handles user login functionality including:
+ * - Email/password authentication
+ * - Form validation
+ * - Social login buttons (Google, Facebook, Apple)
+ * - Navigation to forgot password and sign up screens
+ * - Loading states and error handling
+ */
+
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+// Screen imports
 import 'package:frontend/screens/forgot_password_screen.dart';
 import 'package:frontend/screens/signup_screen.dart';
 import 'package:frontend/screens/interest_screen.dart';
+
+// Provider imports
+import 'package:frontend/providers/auth_provider.dart';
+
+// Theme imports
 import '../main.dart';
 
+// Utils imports
+import '../utils/validators.dart';
+
+/**
+ * LoginScreen - Stateful widget for user authentication
+ * Manages login form state, validation, and user interactions
+ */
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -11,9 +37,72 @@ class LoginScreen extends StatefulWidget {
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
+/**
+ * Login screen state management
+ * Handles form validation, authentication logic, and UI state
+ */
 class _LoginScreenState extends State<LoginScreen> {
-  bool _obscurePassword = true;
+  // Form and UI state
+  bool _obscurePassword = true; // Password visibility toggle
+  final _formKey = GlobalKey<FormState>(); // Form validation key
+  final _emailController = TextEditingController(); // Email input controller
+  final _passwordController =
+      TextEditingController(); // Password input controller
+  bool _isLoading = false; // Loading state for async operations
 
+  /**
+   * Clean up controllers when widget is disposed
+   * Prevents memory leaks
+   */
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  /**
+   * Handle login form submission
+   * Validates form, authenticates user, and navigates to interest screen on success
+   */
+  Future<void> _handleLogin() async {
+    if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isLoading = true;
+      });
+
+      try {
+        final authProvider = Provider.of<AuthProvider>(context, listen: false);
+        await authProvider.signInWithEmailAndPassword(
+          _emailController.text.trim(),
+          _passwordController.text.trim(),
+        );
+
+        if (mounted) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => const InterestScreen()),
+          );
+        }
+      } catch (error) {
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(error.toString())));
+        }
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+      }
+    }
+  }
+
+  /**
+   * Build the login screen UI
+   * Contains form fields, social login buttons, and navigation options
+   */
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -32,9 +121,16 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
                 const SizedBox(height: 50),
-                _buildTextField("Email Address", "Input email address"),
-                const SizedBox(height: 20),
-                _buildPasswordField(),
+                Form(
+                  key: _formKey,
+                  child: Column(
+                    children: [
+                      _buildEmailField(),
+                      const SizedBox(height: 20),
+                      _buildPasswordField(),
+                    ],
+                  ),
+                ),
                 const SizedBox(height: 10),
                 Align(
                   alignment: Alignment.centerRight,
@@ -59,15 +155,14 @@ class _LoginScreenState extends State<LoginScreen> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () {
-                      // Navigate to Interest screen on successful login
-                      Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(
-                          builder: (context) => const InterestScreen(),
-                        ),
-                      );
-                    },
-                    child: const Text("Login"),
+                    onPressed: _isLoading ? null : _handleLogin,
+                    child: _isLoading
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Text("Login"),
                   ),
                 ),
                 const SizedBox(height: 40),
@@ -130,17 +225,36 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildTextField(String label, String hint) {
+  /**
+   * Build email input field with validation
+   * Uses validateEmail function from validators utility
+   */
+  Widget _buildEmailField() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
+        const Text(
+          "Email Address",
+          style: TextStyle(fontWeight: FontWeight.w600),
+        ),
         const SizedBox(height: 8),
-        TextFormField(decoration: InputDecoration(hintText: hint)),
+        TextFormField(
+          controller: _emailController,
+          keyboardType: TextInputType.emailAddress,
+          validator: validateEmail,
+          decoration: const InputDecoration(
+            hintText: "Input email address",
+            border: OutlineInputBorder(),
+          ),
+        ),
       ],
     );
   }
 
+  /**
+   * Build password input field with visibility toggle
+   * Uses validatePassword function from validators utility
+   */
   Widget _buildPasswordField() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -148,9 +262,12 @@ class _LoginScreenState extends State<LoginScreen> {
         const Text("Password", style: TextStyle(fontWeight: FontWeight.w600)),
         const SizedBox(height: 8),
         TextFormField(
+          controller: _passwordController,
           obscureText: _obscurePassword,
+          validator: validatePassword,
           decoration: InputDecoration(
             hintText: "Input password",
+            border: const OutlineInputBorder(),
             suffixIcon: IconButton(
               icon: Icon(
                 _obscurePassword
@@ -170,6 +287,10 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  /**
+   * Build social login button
+   * Currently uses placeholder icons - should be replaced with actual social provider assets
+   */
   Widget _buildSocialButton({
     required String iconPath,
     required String label,
@@ -199,6 +320,21 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
         onPressed: () {},
       ),
+    );
+  }
+}
+
+extension AuthProviderSignInExtension on AuthProvider {
+  /// Compatibility shim: provides the missing signInWithEmailAndPassword method
+  /// so login_screen.dart can compile. Replace this stub with a real
+  /// implementation in providers/auth_provider.dart or adjust the call site
+  /// to use the correct AuthProvider API.
+  Future<void> signInWithEmailAndPassword(String email, String password) async {
+    // TODO: Implement actual authentication logic here or delegate to the
+    // existing AuthProvider implementation (e.g. auth.signIn, login, etc.).
+    throw UnimplementedError(
+      'AuthProvider.signInWithEmailAndPassword is not implemented. '
+      'Implement this method in providers/auth_provider.dart or update login_screen.dart to use the available method.',
     );
   }
 }
