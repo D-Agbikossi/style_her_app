@@ -64,7 +64,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       Navigator.of(context).pushReplacement(
                         MaterialPageRoute(
                           builder: (context) => const InterestScreen(),
-                        ), // <-- UPDATED THIS LINE
+                        ),
                       );
                     },
                     child: const Text("Login"),
@@ -130,9 +130,6 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  // Re-using the same helper widgets from SignUp screen
-  // In a real app, these would be in a separate 'widgets' file.
-
   Widget _buildTextField(String label, String hint) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -188,9 +185,7 @@ class _LoginScreenState extends State<LoginScreen> {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton.icon(
-        icon: Icon(
-          iconData,
-        ), // <-- REPLACE with Image.asset(iconPath, height: 24)
+        icon: Icon(iconData), // REPLACE with Image.asset(iconPath, height: 24)
         label: Text(label),
         style: ElevatedButton.styleFrom(
           backgroundColor: backgroundColor,
