@@ -160,8 +160,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
     required Color foregroundColor,
     bool isGoogle = false,
   }) {
-    // NOTE: You must add your own logo assets to your project's 'assets' folder
-    // For this placeholder, I'll use Flutter icons.
     IconData iconData = Icons.error;
     if (label.contains("Google")) iconData = Icons.g_mobiledata;
     if (label.contains("Facebook")) iconData = Icons.facebook;
@@ -170,9 +168,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton.icon(
-        icon: Icon(
-          iconData,
-        ), // <-- REPLACE with Image.asset(iconPath, height: 24)
+        icon: Icon(iconData), // REPLACE with Image.asset(iconPath, height: 24)
         label: Text(label),
         style: ElevatedButton.styleFrom(
           backgroundColor: backgroundColor,
