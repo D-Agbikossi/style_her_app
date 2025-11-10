@@ -64,6 +64,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '455194861641',
     projectId: 'herstyleproject',
     storageBucket: 'herstyleproject.firebasestorage.app',
+    iosClientId: '455194861641-2c74r085qrnsdrrntdrq3hq1bvfpdqd2.apps.googleusercontent.com',
     iosBundleId: 'com.example.frontend',
   );
+
 }
