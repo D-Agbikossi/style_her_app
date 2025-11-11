@@ -1,7 +1,26 @@
+/**
+ * Interest Selection Screen
+ * 
+ * This screen allows users to select their interests:
+ * - Display available interest categories
+ * - Multi-select interest chips
+ * - Navigation to home screen
+ * - Skip option for users who don't want to select interests
+ */
+
 import 'package:flutter/material.dart';
+
+// Screen imports
 import 'package:frontend/screens/home_screen.dart';
+
+// Theme imports
 import '../main.dart';
 
+/**
+ * Interest Selection Screen
+ * 
+ * Main widget for interest selection functionality
+ */
 class InterestScreen extends StatefulWidget {
   const InterestScreen({super.key});
 
@@ -9,7 +28,16 @@ class InterestScreen extends StatefulWidget {
   State<InterestScreen> createState() => _InterestScreenState();
 }
 
+/**
+ * Interest Selection Screen State
+ * 
+ * Manages available interests and user selections
+ */
 class _InterestScreenState extends State<InterestScreen> {
+  /**
+   * Available interest categories for users to select from
+   * Covers various beauty and personal care topics
+   */
   final List<String> _interests = [
     "Show All",
     "Make Up",
@@ -23,8 +51,16 @@ class _InterestScreenState extends State<InterestScreen> {
     "Tools",
   ];
 
+  /**
+   * Set of currently selected interests
+   * Uses Set for efficient add/remove operations
+   */
   final Set<String> _selectedInterests = {};
 
+/**
+   * Build the interest selection screen UI
+   * Includes title, subtitle, interest chips, and navigation buttons
+   */
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -121,6 +157,11 @@ class _InterestScreenState extends State<InterestScreen> {
     );
   }
 
+/**
+   * Navigate to home screen
+   * Used for both Next and Skip actions
+   * Replaces current route to prevent back navigation
+   */
   void _navigateToHome() {
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(builder: (context) => const HomeScreen()),
