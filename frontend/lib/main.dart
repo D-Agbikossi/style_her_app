@@ -31,6 +31,7 @@ import 'package:provider/provider.dart';
 
 // App-specific imports
 import 'firebase_options.dart';
+<<<<<<< Updated upstream
 import 'providers/auth_provider.dart';
 import 'providers/course_provider.dart';
 import 'screens/onboarding_screen.dart';
@@ -39,9 +40,31 @@ import 'screens/onboarding_screen.dart';
  * Application entry point
  * Initializes Firebase and runs the main app
  */
+=======
+import 'services/firestore_test.dart'; // 👈 import the test file
+
+// Import the screens
+import 'notifications_screen.dart';
+import 'popular_courses_screen.dart';
+import 'top_mentors_screen.dart';
+
+// --- Color Helpers & Global Colors ---
+Color hexToColor(String hexCode) {
+  String colorString = 'FF${hexCode.substring(1)}';
+  return Color(int.parse(colorString, radix: 16));
+}
+
+// Background: #F5F9FF, Primary: #2C5BB1)
+final Color kBackgroundColor = hexToColor('#F5F9FF');
+final Color kPrimaryBlue = hexToColor('#2C5BB1'); // Used for icons/buttons
+
+// --- Main Entry Point ---
+
+>>>>>>> Stashed changes
 Future<void> main() async {
   // Ensure Flutter binding is initialized before Firebase
   WidgetsFlutterBinding.ensureInitialized();
+<<<<<<< Updated upstream
 
   // Initialize Firebase with platform-specific configuration
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
@@ -59,6 +82,21 @@ const Color kPrimaryText = Color(
   0xFF4A6FDB,
 ); // Primary text color (darker blue)
 const Color kScaffoldBackground = Colors.white; // Background color for screens
+=======
+  try {
+    // Replace with your actual Firebase initialization if needed
+    // await Firebase.initializeApp(
+    //   options: DefaultFirebaseOptions.currentPlatform,
+    // );
+  } catch (e) {
+    // Handle initialization error
+  }
+
+  runApp(const MyApp());
+}
+
+// --- App Root Widget ---
+>>>>>>> Stashed changes
 
 /**
  * Root widget of the StyleHer application
@@ -69,14 +107,33 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+<<<<<<< Updated upstream
     // Configure system UI (status bar)
     SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
         statusBarIconBrightness: Brightness.dark,
       ),
+=======
+    return MaterialApp(
+      title: 'Style Her App',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        primaryColor: kPrimaryBlue,
+        scaffoldBackgroundColor: kBackgroundColor,
+        fontFamily: 'Roboto',
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          iconTheme: IconThemeData(color: Colors.black),
+        ),
+      ),
+      // Start directly on the new navigation screen
+      home: const MainNavigationScreen(),
+>>>>>>> Stashed changes
     );
 
+<<<<<<< Updated upstream
     // Set up providers for state management
     return MultiProvider(
       providers: [
@@ -100,11 +157,80 @@ class MyApp extends StatelessWidget {
           ),
         ),
         home: const AuthOrOnboarding(), // Initial screen based on auth state
+=======
+// --- New Main Navigation Screen (Manages Bottom Bar) ---
+
+class MainNavigationScreen extends StatefulWidget {
+  const MainNavigationScreen({super.key});
+
+  @override
+  State<MainNavigationScreen> createState() => _MainNavigationScreenState();
+}
+
+class _MainNavigationScreenState extends State<MainNavigationScreen> {
+  int _selectedIndex = 0;
+
+  // List of screens to be displayed in the body of the Scaffold
+  final List<Widget> _screens = [
+    // Placeholder for a proper home screen (currently showing courses)
+    const PopularCoursesScreen(),
+    const TopMentorsScreen(),
+    const NotificationsScreen(),
+    // Placeholder for two more typical navigation items (e.g., Profile, Search)
+    const Center(child: Text('Placeholder Screen 4 (e.g., Search)')),
+    const Center(child: Text('Placeholder Screen 5 (e.g., Profile)')),
+  ];
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      // The current screen is displayed here
+      body: _screens[_selectedIndex],
+
+      bottomNavigationBar: BottomNavigationBar(
+        items: const <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+            icon: Icon(Icons.school_outlined),
+            label: 'Courses', // Mapped to PopularCoursesScreen
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.people_outline),
+            label: 'Mentors', // Mapped to TopMentorsScreen
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.notifications_outlined),
+            label: 'Alerts', // Mapped to NotificationsScreen
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.search),
+            label: 'Search', // Placeholder
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline),
+            label: 'Profile', // Placeholder
+          ),
+        ],
+        currentIndex: _selectedIndex,
+        selectedItemColor: kPrimaryBlue, // Use the primary blue color
+        unselectedItemColor: Colors.grey,
+        showUnselectedLabels: true, // Keep labels visible
+        backgroundColor: Colors.white,
+        elevation: 8,
+        type: BottomNavigationBarType.fixed, // Important for more than 3 items
+        onTap: _onItemTapped,
+>>>>>>> Stashed changes
       ),
     );
   }
 }
 
+<<<<<<< Updated upstream
 /**
  * Authentication decision widget
  * Determines whether to show onboarding or main app based on user login status
@@ -146,6 +272,22 @@ class AuthWrapper extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('StyleHer')),
       body: const Center(child: Text('Welcome back!')),
+=======
+class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Style Her App')),
+      body: const Center(
+        child: Text(
+          'Welcome to Style Her — Firestore test ran successfully!',
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 18),
+        ),
+      ),
+>>>>>>> Stashed changes
     );
   }
 }
