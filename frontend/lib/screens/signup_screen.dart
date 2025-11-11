@@ -15,7 +15,7 @@ import 'package:provider/provider.dart';
 
 // Screen imports
 import 'package:frontend/screens/login_screen.dart';
-import 'package:frontend/screens/home_screen.dart';
+
 
 // Provider imports
 import 'package:frontend/providers/auth_provider.dart';
@@ -78,16 +78,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
       try {
         final authProvider = Provider.of<AuthProvider>(context, listen: false);
-        // Use dynamic call to avoid static type errors if the provider uses a different method name.
-        await (authProvider as dynamic).signUpWithEmailAndPassword(
+        await authProvider.signUp(
           _emailController.text.trim(),
           _passwordController.text.trim(),
-          _nameController.text.trim(),
+          displayName: _nameController.text.trim(),
         );
 
         if (mounted) {
           Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => const HomeScreen()),
+            MaterialPageRoute(builder: (context) => const LoginScreen()),
           );
         }
       } catch (error) {
@@ -108,104 +107,108 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isSmallScreen = screenHeight < 700;
+    
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 40),
-                Center(
-                  child: Text(
-                    "Sign Up",
-                    style: Theme.of(context).textTheme.displayLarge,
-                  ),
+          padding: EdgeInsets.symmetric(
+            horizontal: 24.0,
+            vertical: isSmallScreen ? 16.0 : 24.0,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(height: isSmallScreen ? 20 : 40),
+              Center(
+                child: Text(
+                  "Sign Up",
+                  style: Theme.of(context).textTheme.displayLarge,
                 ),
-                const SizedBox(height: 50),
-                Form(
-                  key: _formKey,
-                  child: Column(
-                    children: [
-                      _buildNameField(),
-                      const SizedBox(height: 20),
-                      _buildEmailField(),
-                      const SizedBox(height: 20),
-                      _buildCountryField(),
-                      const SizedBox(height: 20),
-                      _buildPasswordField(),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 40),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: _isLoading ? null : _handleSignUp,
-                    child: _isLoading
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Text("Sign up"),
-                  ),
-                ),
-                const SizedBox(height: 30),
-                const Center(
-                  child: Text(
-                    "Or sign up with",
-                    style: TextStyle(color: Colors.grey),
-                  ),
-                ),
-                const SizedBox(height: 30),
-                _buildSocialButton(
-                  iconPath: 'assets/google_logo.png', // <-- ADD YOUR ASSET
-                  label: "Continue with Google",
-                  backgroundColor: Colors.white,
-                  foregroundColor: Colors.black,
-                  isGoogle: true,
-                ),
-                const SizedBox(height: 20),
-                _buildSocialButton(
-                  iconPath: 'assets/facebook_logo.png', // <-- ADD YOUR ASSET
-                  label: "Continue with Facebook",
-                  backgroundColor: const Color(0xFF1877F2),
-                  foregroundColor: Colors.white,
-                ),
-                const SizedBox(height: 20),
-                _buildSocialButton(
-                  iconPath: 'assets/apple_logo.png', // <-- ADD YOUR ASSET
-                  label: "Continue with Apple",
-                  backgroundColor: Colors.black,
-                  foregroundColor: Colors.white,
-                ),
-                const SizedBox(height: 40),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+              ),
+              SizedBox(height: isSmallScreen ? 30 : 50),
+              Form(
+                key: _formKey,
+                child: Column(
                   children: [
-                    const Text("Already have an account?"),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => const LoginScreen(),
-                          ),
-                        );
-                      },
-                      child: const Text(
-                        "Sign in",
-                        style: TextStyle(
-                          color: kPrimaryColor,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
+                    _buildNameField(),
+                    SizedBox(height: isSmallScreen ? 16 : 20),
+                    _buildEmailField(),
+                    SizedBox(height: isSmallScreen ? 16 : 20),
+                    _buildCountryField(),
+                    SizedBox(height: isSmallScreen ? 16 : 20),
+                    _buildPasswordField(),
                   ],
                 ),
-              ],
-            ),
+              ),
+              SizedBox(height: isSmallScreen ? 24 : 40),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _isLoading ? null : _handleSignUp,
+                  child: _isLoading
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text("Sign up"),
+                ),
+              ),
+              SizedBox(height: isSmallScreen ? 20 : 30),
+              const Center(
+                child: Text(
+                  "Or sign up with",
+                  style: TextStyle(color: Colors.grey),
+                ),
+              ),
+              SizedBox(height: isSmallScreen ? 20 : 30),
+              _buildSocialButton(
+                iconPath: 'assets/google_logo.png',
+                label: "Continue with Google",
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.black,
+                isGoogle: true,
+              ),
+              SizedBox(height: isSmallScreen ? 12 : 20),
+              _buildSocialButton(
+                iconPath: 'assets/facebook_logo.png',
+                label: "Continue with Facebook",
+                backgroundColor: const Color(0xFF1877F2),
+                foregroundColor: Colors.white,
+              ),
+              SizedBox(height: isSmallScreen ? 12 : 20),
+              _buildSocialButton(
+                iconPath: 'assets/apple_logo.png',
+                label: "Continue with Apple",
+                backgroundColor: Colors.black,
+                foregroundColor: Colors.white,
+              ),
+              SizedBox(height: isSmallScreen ? 24 : 40),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text("Already have an account?"),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const LoginScreen(),
+                        ),
+                      );
+                    },
+                    child: const Text(
+                      "Sign in",
+                      style: TextStyle(
+                        color: kPrimaryColor,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
       ),
@@ -309,6 +312,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
     required Color foregroundColor,
     bool isGoogle = false,
   }) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isSmallScreen = screenHeight < 700;
+    
     IconData iconData = Icons.error;
     if (label.contains("Google")) iconData = Icons.g_mobiledata;
     if (label.contains("Facebook")) iconData = Icons.facebook;
@@ -317,7 +323,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton.icon(
-        icon: Icon(iconData), // REPLACE with Image.asset(iconPath, height: 24)
+        icon: Icon(iconData, size: isSmallScreen ? 20 : 24),
         label: Text(label),
         style: ElevatedButton.styleFrom(
           backgroundColor: backgroundColor,
@@ -326,8 +332,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
           side: isGoogle
               ? const BorderSide(color: Colors.black12)
               : BorderSide.none,
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          padding: EdgeInsets.symmetric(vertical: isSmallScreen ? 12 : 16),
+          textStyle: TextStyle(
+            fontSize: isSmallScreen ? 14 : 16, 
+            fontWeight: FontWeight.w600
+          ),
         ),
         onPressed: () {},
       ),

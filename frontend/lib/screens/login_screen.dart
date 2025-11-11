@@ -73,7 +73,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
       try {
         final authProvider = Provider.of<AuthProvider>(context, listen: false);
-        await authProvider.signInWithEmailAndPassword(
+        await authProvider.signIn(
           _emailController.text.trim(),
           _passwordController.text.trim(),
         );
@@ -105,120 +105,124 @@ class _LoginScreenState extends State<LoginScreen> {
    */
   @override
   Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isSmallScreen = screenHeight < 700;
+    
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 60),
-                Center(
-                  child: Text(
-                    "Login",
-                    style: Theme.of(context).textTheme.displayLarge,
+          padding: EdgeInsets.symmetric(
+            horizontal: 24.0,
+            vertical: isSmallScreen ? 16.0 : 24.0,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(height: isSmallScreen ? 40 : 60),
+              Center(
+                child: Text(
+                  "Login",
+                  style: Theme.of(context).textTheme.displayLarge,
+                ),
+              ),
+              SizedBox(height: isSmallScreen ? 30 : 50),
+              Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    _buildEmailField(),
+                    SizedBox(height: isSmallScreen ? 16 : 20),
+                    _buildPasswordField(),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 10),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const ForgotPasswordScreen(),
+                      ),
+                    );
+                  },
+                  child: const Text(
+                    "Forgot Password?",
+                    style: TextStyle(
+                      color: kPrimaryColor,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
-                const SizedBox(height: 50),
-                Form(
-                  key: _formKey,
-                  child: Column(
-                    children: [
-                      _buildEmailField(),
-                      const SizedBox(height: 20),
-                      _buildPasswordField(),
-                    ],
-                  ),
+              ),
+              SizedBox(height: isSmallScreen ? 20 : 30),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _isLoading ? null : _handleLogin,
+                  child: _isLoading
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text("Login"),
                 ),
-                const SizedBox(height: 10),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(
+              ),
+              SizedBox(height: isSmallScreen ? 24 : 40),
+              const Center(
+                child: Text(
+                  "Or sign up with",
+                  style: TextStyle(color: Colors.grey),
+                ),
+              ),
+              SizedBox(height: isSmallScreen ? 20 : 30),
+              _buildSocialButton(
+                iconPath: 'assets/google_logo.png',
+                label: "Continue with Google",
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.black,
+                isGoogle: true,
+              ),
+              SizedBox(height: isSmallScreen ? 12 : 20),
+              _buildSocialButton(
+                iconPath: 'assets/facebook_logo.png',
+                label: "Continue with Facebook",
+                backgroundColor: const Color(0xFF1877F2),
+                foregroundColor: Colors.white,
+              ),
+              SizedBox(height: isSmallScreen ? 12 : 20),
+              _buildSocialButton(
+                iconPath: 'assets/apple_logo.png',
+                label: "Continue with Apple",
+                backgroundColor: Colors.black,
+                foregroundColor: Colors.white,
+              ),
+              SizedBox(height: isSmallScreen ? 30 : 50),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text("You don't have an account?"),
+                  TextButton(
                     onPressed: () {
-                      Navigator.of(context).push(
+                      Navigator.of(context).pushReplacement(
                         MaterialPageRoute(
-                          builder: (context) => const ForgotPasswordScreen(),
+                          builder: (context) => const SignUpScreen(),
                         ),
                       );
                     },
                     child: const Text(
-                      "Forgot Password?",
+                      "Sign up",
                       style: TextStyle(
                         color: kPrimaryColor,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 30),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: _isLoading ? null : _handleLogin,
-                    child: _isLoading
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Text("Login"),
-                  ),
-                ),
-                const SizedBox(height: 40),
-                const Center(
-                  child: Text(
-                    "Or sign up with",
-                    style: TextStyle(color: Colors.grey),
-                  ),
-                ),
-                const SizedBox(height: 30),
-                _buildSocialButton(
-                  iconPath: 'assets/google_logo.png', // <-- ADD YOUR ASSET
-                  label: "Continue with Google",
-                  backgroundColor: Colors.white,
-                  foregroundColor: Colors.black,
-                  isGoogle: true,
-                ),
-                const SizedBox(height: 20),
-                _buildSocialButton(
-                  iconPath: 'assets/facebook_logo.png', // <-- ADD YOUR ASSET
-                  label: "Continue with Facebook",
-                  backgroundColor: const Color(0xFF1877F2),
-                  foregroundColor: Colors.white,
-                ),
-                const SizedBox(height: 20),
-                _buildSocialButton(
-                  iconPath: 'assets/apple_logo.png', // <-- ADD YOUR ASSET
-                  label: "Continue with Apple",
-                  backgroundColor: Colors.black,
-                  foregroundColor: Colors.white,
-                ),
-                const SizedBox(height: 50),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text("You don't have an account?"),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.of(context).pushReplacement(
-                          MaterialPageRoute(
-                            builder: (context) => const SignUpScreen(),
-                          ),
-                        );
-                      },
-                      child: const Text(
-                        "Sign up",
-                        style: TextStyle(
-                          color: kPrimaryColor,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+                ],
+              ),
+            ],
           ),
         ),
       ),
@@ -298,6 +302,9 @@ class _LoginScreenState extends State<LoginScreen> {
     required Color foregroundColor,
     bool isGoogle = false,
   }) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isSmallScreen = screenHeight < 700;
+    
     IconData iconData = Icons.error;
     if (label.contains("Google")) iconData = Icons.g_mobiledata;
     if (label.contains("Facebook")) iconData = Icons.facebook;
@@ -306,7 +313,7 @@ class _LoginScreenState extends State<LoginScreen> {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton.icon(
-        icon: Icon(iconData), // REPLACE with Image.asset(iconPath, height: 24)
+        icon: Icon(iconData, size: isSmallScreen ? 20 : 24),
         label: Text(label),
         style: ElevatedButton.styleFrom(
           backgroundColor: backgroundColor,
@@ -315,8 +322,11 @@ class _LoginScreenState extends State<LoginScreen> {
           side: isGoogle
               ? const BorderSide(color: Colors.black12)
               : BorderSide.none,
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          padding: EdgeInsets.symmetric(vertical: isSmallScreen ? 12 : 16),
+          textStyle: TextStyle(
+            fontSize: isSmallScreen ? 14 : 16, 
+            fontWeight: FontWeight.w600
+          ),
         ),
         onPressed: () {},
       ),
@@ -324,17 +334,4 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 }
 
-extension AuthProviderSignInExtension on AuthProvider {
-  /// Compatibility shim: provides the missing signInWithEmailAndPassword method
-  /// so login_screen.dart can compile. Replace this stub with a real
-  /// implementation in providers/auth_provider.dart or adjust the call site
-  /// to use the correct AuthProvider API.
-  Future<void> signInWithEmailAndPassword(String email, String password) async {
-    // TODO: Implement actual authentication logic here or delegate to the
-    // existing AuthProvider implementation (e.g. auth.signIn, login, etc.).
-    throw UnimplementedError(
-      'AuthProvider.signInWithEmailAndPassword is not implemented. '
-      'Implement this method in providers/auth_provider.dart or update login_screen.dart to use the available method.',
-    );
-  }
-}
+
