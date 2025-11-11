@@ -85,6 +85,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
         );
 
         if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Account created! Please check your email to verify your account.'),
+              backgroundColor: kPrimaryColor,
+              duration: Duration(seconds: 5),
+            ),
+          );
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (context) => const LoginScreen()),
           );
@@ -124,7 +131,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
               Center(
                 child: Text(
                   "Sign Up",
-                  style: Theme.of(context).textTheme.displayLarge,
+                  style: const TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFF6585D3),
+                  ),
                 ),
               ),
               SizedBox(height: isSmallScreen ? 30 : 50),
@@ -147,13 +158,19 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : _handleSignUp,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF6585D3),
+                  ),
                   child: _isLoading
                       ? const SizedBox(
                           height: 20,
                           width: 20,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Text("Sign up"),
+                      : const Text(
+                          "Sign up",
+                          style: TextStyle(fontWeight: FontWeight.w700),
+                        ),
                 ),
               ),
               SizedBox(height: isSmallScreen ? 20 : 30),

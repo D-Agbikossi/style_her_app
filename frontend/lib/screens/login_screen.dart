@@ -122,7 +122,11 @@ class _LoginScreenState extends State<LoginScreen> {
               Center(
                 child: Text(
                   "Login",
-                  style: Theme.of(context).textTheme.displayLarge,
+                  style: const TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFF6585D3),
+                  ),
                 ),
               ),
               SizedBox(height: isSmallScreen ? 30 : 50),
@@ -161,13 +165,19 @@ class _LoginScreenState extends State<LoginScreen> {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : _handleLogin,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF6585D3),
+                  ),
                   child: _isLoading
                       ? const SizedBox(
                           height: 20,
                           width: 20,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Text("Login"),
+                      : const Text(
+                          "Login",
+                          style: TextStyle(fontWeight: FontWeight.w700),
+                        ),
                 ),
               ),
               SizedBox(height: isSmallScreen ? 24 : 40),

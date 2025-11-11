@@ -84,6 +84,14 @@ class AuthProvider with ChangeNotifier {
    */
   Future<void> resetPassword(String email) => _authService.sendPasswordResetEmail(email);
 
+  /**
+   * Resend email verification
+   * Sends verification email to current user
+   */
+  Future<void> resendEmailVerification() async {
+    await _authService.sendEmailVerification();
+  }
+
 /**
    * Handle authentication state changes
    * Updates user state and manages profile data subscription
