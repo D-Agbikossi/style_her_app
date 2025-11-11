@@ -31,7 +31,6 @@ import 'package:provider/provider.dart';
 
 // App-specific imports
 import 'firebase_options.dart';
-<<<<<<< Updated upstream
 import 'providers/auth_provider.dart';
 import 'providers/course_provider.dart';
 import 'screens/onboarding_screen.dart';
@@ -42,7 +41,7 @@ import 'screens/home_screen.dart';
  * Application entry point
  * Initializes Firebase and runs the main app
  */
-=======
+
 import 'services/firestore_test.dart'; // 👈 import the test file
 
 // Import the screens
@@ -62,11 +61,10 @@ final Color kPrimaryBlue = hexToColor('#2C5BB1'); // Used for icons/buttons
 
 // --- Main Entry Point ---
 
->>>>>>> Stashed changes
 Future<void> main() async {
   // Ensure Flutter binding is initialized before Firebase
   WidgetsFlutterBinding.ensureInitialized();
-<<<<<<< Updated upstream
+
 
   // Initialize Firebase with platform-specific configuration
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
@@ -109,14 +107,14 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-<<<<<<< Updated upstream
+
     // Configure system UI (status bar)
     SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
         statusBarIconBrightness: Brightness.dark,
       ),
-=======
+
     return MaterialApp(
       title: 'Style Her App',
       debugShowCheckedModeBanner: false,
@@ -132,7 +130,7 @@ class MyApp extends StatelessWidget {
       ),
       // Start directly on the new navigation screen
       home: const MainNavigationScreen(),
->>>>>>> Stashed changes
+
     );
 
 <<<<<<< Updated upstream
