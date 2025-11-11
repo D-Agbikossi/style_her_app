@@ -32,6 +32,7 @@ import 'package:provider/provider.dart';
 // App-specific imports
 import 'firebase_options.dart';
 import 'providers/auth_provider.dart';
+import 'providers/course_provider.dart';
 import 'screens/onboarding_screen.dart';
 
 /**
@@ -81,7 +82,10 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(
           create: (_) => AuthProvider(),
-        ), // User authentication state
+        ),
+        ChangeNotifierProvider(
+          create: (_) => CourseProvider(),
+        ),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
