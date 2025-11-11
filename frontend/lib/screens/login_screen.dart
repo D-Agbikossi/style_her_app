@@ -122,7 +122,11 @@ class _LoginScreenState extends State<LoginScreen> {
               Center(
                 child: Text(
                   "Login",
-                  style: Theme.of(context).textTheme.displayLarge,
+                  style: const TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w900,
+                    color: kPrimaryText,
+                  ),
                 ),
               ),
               SizedBox(height: isSmallScreen ? 30 : 50),
@@ -167,7 +171,10 @@ class _LoginScreenState extends State<LoginScreen> {
                           width: 20,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Text("Login"),
+                      : const Text(
+                          "Login",
+                          style: TextStyle(fontWeight: FontWeight.w700),
+                        ),
                 ),
               ),
               SizedBox(height: isSmallScreen ? 24 : 40),

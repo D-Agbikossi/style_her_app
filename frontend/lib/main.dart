@@ -34,6 +34,8 @@ import 'firebase_options.dart';
 import 'providers/auth_provider.dart';
 import 'providers/course_provider.dart';
 import 'screens/onboarding_screen.dart';
+import 'screens/email_verification_screen.dart';
+import 'screens/home_screen.dart';
 
 /**
  * Application entry point
@@ -125,8 +127,13 @@ class AuthOrOnboarding extends StatelessWidget {
           );
         }
 
-        // User is logged in - show main app
+        // User is logged in
         if (snapshot.hasData) {
+          final user = snapshot.data!;
+          // Check if email is verified
+          if (!user.emailVerified) {
+            return const EmailVerificationScreen();
+          }
           return const AuthWrapper();
         } else {
           // User is not logged in - show onboarding
@@ -142,10 +149,6 @@ class AuthWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Replace this with your real authenticated root (e.g., HomeScreen or a navigation scaffold)
-    return Scaffold(
-      appBar: AppBar(title: const Text('StyleHer')),
-      body: const Center(child: Text('Welcome back!')),
-    );
+    return const HomeScreen();
   }
 }

@@ -88,20 +88,35 @@ class _HomeScreenState extends State<HomeScreen> {
    */
   @override
   Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isSmallScreen = screenHeight < 700;
+    
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
+          padding: EdgeInsets.symmetric(
+            horizontal: isSmallScreen ? 12.0 : 16.0,
+            vertical: isSmallScreen ? 8.0 : 12.0,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildHeader(),
+              SizedBox(height: isSmallScreen ? 8 : 12),
               _buildSearchBar(),
+              SizedBox(height: isSmallScreen ? 8 : 12),
               _buildSpecialOfferBanner(),
+              SizedBox(height: isSmallScreen ? 8 : 12),
               _buildSectionHeader("Popular Courses"),
+              SizedBox(height: isSmallScreen ? 4 : 8),
               _buildCategoryChips(),
+              SizedBox(height: isSmallScreen ? 8 : 12),
               _buildPopularCoursesList(),
+              SizedBox(height: isSmallScreen ? 12 : 16),
               _buildSectionHeader("Top Mentor"),
+              SizedBox(height: isSmallScreen ? 8 : 12),
               _buildTopMentorList(),
+              SizedBox(height: isSmallScreen ? 16 : 24),
             ],
           ),
         ),
@@ -114,10 +129,18 @@ class _HomeScreenState extends State<HomeScreen> {
    */
   Widget _buildHeader() {
     final authProvider = Provider.of<AuthProvider>(context);
-    final userName = authProvider.profile?.displayName ?? 'User';
+    final fullName = authProvider.profile?.displayName ?? 'User';
+    final firstName = fullName.split(' ').first;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isSmallScreen = screenHeight < 700;
     
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
+      padding: EdgeInsets.fromLTRB(
+        isSmallScreen ? 16 : 20, 
+        isSmallScreen ? 12 : 20, 
+        isSmallScreen ? 16 : 20, 
+        isSmallScreen ? 8 : 10
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -125,11 +148,11 @@ class _HomeScreenState extends State<HomeScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                "Hi, ${userName.toUpperCase()}",
-                style: const TextStyle(
-                  fontSize: 28,
+                "Hi, $firstName",
+                style: TextStyle(
+                  fontSize: isSmallScreen ? 24 : 28,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF4A6FDB),
+                  color: const Color(0xFF4A6FDB),
                 ),
               ),
               const SizedBox(height: 4),
@@ -154,9 +177,14 @@ class _HomeScreenState extends State<HomeScreen> {
    */
   Widget _buildSearchBar() {
     final courseProvider = Provider.of<CourseProvider>(context);
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isSmallScreen = screenHeight < 700;
     
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      padding: EdgeInsets.symmetric(
+        horizontal: isSmallScreen ? 16 : 20, 
+        vertical: isSmallScreen ? 8 : 10
+      ),
       child: TextField(
         onChanged: (value) {
           setState(() {
@@ -189,10 +217,13 @@ class _HomeScreenState extends State<HomeScreen> {
    * Build the special offer banner with discount information
    */
   Widget _buildSpecialOfferBanner() {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isSmallScreen = screenHeight < 700;
+    
     return Padding(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(isSmallScreen ? 16 : 20),
       child: Container(
-        height: 160,
+        height: isSmallScreen ? 140 : 160,
         decoration: BoxDecoration(
           color: kPrimaryColor,
           borderRadius: BorderRadius.circular(20),
@@ -356,22 +387,27 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isSmallScreen = screenHeight < 700;
+    
     return SizedBox(
-      height: 250,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 15),
+      height: isSmallScreen ? 220 : 250,
+      child: PageView.builder(
+        controller: PageController(viewportFraction: 0.85),
         itemCount: courses.length,
         itemBuilder: (context, index) {
           final course = courses[index];
-          return _CourseCard(
-            title: course.title,
-            category: course.category,
-            rating: course.rating,
-            modules: course.lessonCount,
-            level: course.difficulty,
-            price: course.isFree ? null : course.price,
-            thumbnailUrl: course.thumbnailUrl,
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            child: _CourseCard(
+              title: course.title,
+              category: course.category,
+              rating: course.rating,
+              modules: course.lessonCount,
+              level: course.difficulty,
+              price: course.isFree ? null : course.price,
+              thumbnailUrl: course.thumbnailUrl,
+            ),
           );
         },
       ),
@@ -457,9 +493,15 @@ class _CourseCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isSmallScreen = screenHeight < 700;
+    
     return Container(
-      width: 220,
-      margin: const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
+      width: double.infinity,
+      margin: EdgeInsets.symmetric(
+        horizontal: 5, 
+        vertical: isSmallScreen ? 8 : 10
+      ),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(15),
@@ -476,7 +518,7 @@ class _CourseCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            height: 120,
+            height: isSmallScreen ? 100 : 120,
             decoration: BoxDecoration(
               color: Colors.black,
               borderRadius: const BorderRadius.vertical(
