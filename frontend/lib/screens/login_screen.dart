@@ -125,7 +125,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   style: const TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.w900,
-                    color: kPrimaryText,
+                    color: Color(0xFF6585D3),
                   ),
                 ),
               ),
@@ -165,6 +165,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : _handleLogin,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF6585D3),
+                  ),
                   child: _isLoading
                       ? const SizedBox(
                           height: 20,

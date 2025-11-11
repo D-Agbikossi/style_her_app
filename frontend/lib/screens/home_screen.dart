@@ -95,28 +95,28 @@ class _HomeScreenState extends State<HomeScreen> {
       body: SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.symmetric(
-            horizontal: isSmallScreen ? 12.0 : 16.0,
-            vertical: isSmallScreen ? 8.0 : 12.0,
+            horizontal: isSmallScreen ? 8.0 : 12.0,
+            vertical: isSmallScreen ? 4.0 : 8.0,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildHeader(),
-              SizedBox(height: isSmallScreen ? 8 : 12),
+              SizedBox(height: isSmallScreen ? 2 : 4),
               _buildSearchBar(),
-              SizedBox(height: isSmallScreen ? 8 : 12),
+              SizedBox(height: isSmallScreen ? 2 : 4),
               _buildSpecialOfferBanner(),
-              SizedBox(height: isSmallScreen ? 8 : 12),
+              SizedBox(height: isSmallScreen ? 2 : 4),
               _buildSectionHeader("Popular Courses"),
-              SizedBox(height: isSmallScreen ? 4 : 8),
+              SizedBox(height: isSmallScreen ? 1 : 2),
               _buildCategoryChips(),
-              SizedBox(height: isSmallScreen ? 8 : 12),
+              SizedBox(height: isSmallScreen ? 2 : 4),
               _buildPopularCoursesList(),
-              SizedBox(height: isSmallScreen ? 12 : 16),
+              SizedBox(height: isSmallScreen ? 4 : 8),
               _buildSectionHeader("Top Mentor"),
-              SizedBox(height: isSmallScreen ? 8 : 12),
+              SizedBox(height: isSmallScreen ? 2 : 4),
               _buildTopMentorList(),
-              SizedBox(height: isSmallScreen ? 16 : 24),
+              SizedBox(height: isSmallScreen ? 4 : 8),
             ],
           ),
         ),
@@ -136,10 +136,10 @@ class _HomeScreenState extends State<HomeScreen> {
     
     return Padding(
       padding: EdgeInsets.fromLTRB(
-        isSmallScreen ? 16 : 20, 
-        isSmallScreen ? 12 : 20, 
-        isSmallScreen ? 16 : 20, 
-        isSmallScreen ? 8 : 10
+        isSmallScreen ? 12 : 16, 
+        isSmallScreen ? 8 : 12, 
+        isSmallScreen ? 12 : 16, 
+        isSmallScreen ? 4 : 8
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -150,7 +150,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Text(
                 "Hi, $firstName",
                 style: TextStyle(
-                  fontSize: isSmallScreen ? 24 : 28,
+                  fontSize: isSmallScreen ? 20 : 24,
                   fontWeight: FontWeight.bold,
                   color: const Color(0xFF4A6FDB),
                 ),
@@ -182,8 +182,8 @@ class _HomeScreenState extends State<HomeScreen> {
     
     return Padding(
       padding: EdgeInsets.symmetric(
-        horizontal: isSmallScreen ? 16 : 20, 
-        vertical: isSmallScreen ? 8 : 10
+        horizontal: isSmallScreen ? 12 : 16, 
+        vertical: isSmallScreen ? 4 : 8
       ),
       child: TextField(
         onChanged: (value) {
@@ -221,7 +221,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final isSmallScreen = screenHeight < 700;
     
     return Padding(
-      padding: EdgeInsets.all(isSmallScreen ? 16 : 20),
+      padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
       child: Container(
         height: isSmallScreen ? 140 : 160,
         decoration: BoxDecoration(
@@ -398,7 +398,7 @@ class _HomeScreenState extends State<HomeScreen> {
         itemBuilder: (context, index) {
           final course = courses[index];
           return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            padding: const EdgeInsets.symmetric(horizontal: 4.0),
             child: _CourseCard(
               title: course.title,
               category: course.category,

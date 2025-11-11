@@ -134,7 +134,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   style: const TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.w900,
-                    color: kPrimaryText,
+                    color: Color(0xFF6585D3),
                   ),
                 ),
               ),
@@ -158,6 +158,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : _handleSignUp,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF6585D3),
+                  ),
                   child: _isLoading
                       ? const SizedBox(
                           height: 20,
