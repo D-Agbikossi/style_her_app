@@ -11,7 +11,7 @@
 import 'package:flutter/material.dart';
 
 // Screen imports
-import 'package:frontend/screens/home_screen.dart';
+import 'package:frontend/routes.dart';
 
 // Theme imports
 import '../main.dart';
@@ -163,8 +163,6 @@ class _InterestScreenState extends State<InterestScreen> {
    * Replaces current route to prevent back navigation
    */
   void _navigateToHome() {
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (context) => const HomeScreen()),
-    );
+    Navigator.of(context).pushReplacementNamed(AppRoutes.home);
   }
 }
