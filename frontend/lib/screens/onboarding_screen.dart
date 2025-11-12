@@ -195,20 +195,12 @@ class _OnboardingPage extends StatelessWidget {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        // --- IMAGE PLACEHOLDER ---
-        // Replace this Container with your Image.asset
-        Container(
+        Image.asset(
+          'assets/style_her.png',
           width: 250,
           height: 250,
-          decoration: BoxDecoration(
-            color: Colors.grey[100],
-            shape: BoxShape.circle,
-          ),
-          child: Center(
-            child: Icon(Icons.image, size: 100, color: Colors.grey[300]),
-          ),
+          fit: BoxFit.contain,
         ),
-        // --- END PLACEHOLDER ---
         const SizedBox(height: 60),
         Text(
           title,
