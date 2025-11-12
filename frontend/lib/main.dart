@@ -111,8 +111,20 @@ class MyApp extends StatelessWidget {
  * Authentication decision widget
  * Determines whether to show onboarding or main app based on user login status
  */
-class AuthOrOnboarding extends StatelessWidget {
+class AuthOrOnboarding extends StatefulWidget {
   const AuthOrOnboarding({super.key});
+
+  @override
+  State<AuthOrOnboarding> createState() => _AuthOrOnboardingState();
+}
+
+class _AuthOrOnboardingState extends State<AuthOrOnboarding> {
+  @override
+  void initState() {
+    super.initState();
+    // Uncomment the line below to force logout on app restart (for testing)
+    FirebaseAuth.instance.signOut();
+  }
 
   @override
   Widget build(BuildContext context) {

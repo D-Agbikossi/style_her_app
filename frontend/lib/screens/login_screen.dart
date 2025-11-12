@@ -110,15 +110,12 @@ class _LoginScreenState extends State<LoginScreen> {
     
     return Scaffold(
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(
-            horizontal: 24.0,
-            vertical: isSmallScreen ? 16.0 : 24.0,
-          ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(height: isSmallScreen ? 40 : 60),
+              SizedBox(height: isSmallScreen ? 20 : 40),
               Center(
                 child: Text(
                   "Login",
@@ -129,7 +126,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
               ),
-              SizedBox(height: isSmallScreen ? 30 : 50),
+              SizedBox(height: isSmallScreen ? 20 : 30),
               Form(
                 key: _formKey,
                 child: Column(
@@ -140,7 +137,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 8),
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton(
@@ -160,13 +157,14 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
               ),
-              SizedBox(height: isSmallScreen ? 20 : 30),
+              SizedBox(height: isSmallScreen ? 16 : 24),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : _handleLogin,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF6585D3),
+                    foregroundColor: Colors.white,
                   ),
                   child: _isLoading
                       ? const SizedBox(
@@ -180,14 +178,14 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                 ),
               ),
-              SizedBox(height: isSmallScreen ? 24 : 40),
+              SizedBox(height: isSmallScreen ? 20 : 30),
               const Center(
                 child: Text(
                   "Or sign up with",
                   style: TextStyle(color: Colors.grey),
                 ),
               ),
-              SizedBox(height: isSmallScreen ? 20 : 30),
+              SizedBox(height: isSmallScreen ? 16 : 20),
               _buildSocialButton(
                 iconPath: 'assets/google_logo.png',
                 label: "Continue with Google",
@@ -195,21 +193,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 foregroundColor: Colors.black,
                 isGoogle: true,
               ),
-              SizedBox(height: isSmallScreen ? 12 : 20),
-              _buildSocialButton(
-                iconPath: 'assets/facebook_logo.png',
-                label: "Continue with Facebook",
-                backgroundColor: const Color(0xFF1877F2),
-                foregroundColor: Colors.white,
-              ),
-              SizedBox(height: isSmallScreen ? 12 : 20),
-              _buildSocialButton(
-                iconPath: 'assets/apple_logo.png',
-                label: "Continue with Apple",
-                backgroundColor: Colors.black,
-                foregroundColor: Colors.white,
-              ),
-              SizedBox(height: isSmallScreen ? 30 : 50),
+              SizedBox(height: isSmallScreen ? 16 : 24),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -315,15 +299,16 @@ class _LoginScreenState extends State<LoginScreen> {
     final screenHeight = MediaQuery.of(context).size.height;
     final isSmallScreen = screenHeight < 700;
     
-    IconData iconData = Icons.error;
-    if (label.contains("Google")) iconData = Icons.g_mobiledata;
-    if (label.contains("Facebook")) iconData = Icons.facebook;
-    if (label.contains("Apple")) iconData = Icons.apple;
+    IconData iconData = Icons.g_mobiledata;
 
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton.icon(
-        icon: Icon(iconData, size: isSmallScreen ? 20 : 24),
+        icon: Image.asset(
+          'assets/google_logo.png',
+          width: isSmallScreen ? 20 : 24,
+          height: isSmallScreen ? 20 : 24,
+        ),
         label: Text(label),
         style: ElevatedButton.styleFrom(
           backgroundColor: backgroundColor,

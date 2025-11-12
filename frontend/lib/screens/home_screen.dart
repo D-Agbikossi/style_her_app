@@ -144,28 +144,43 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "Hi, $firstName",
-                style: TextStyle(
-                  fontSize: isSmallScreen ? 20 : 24,
-                  fontWeight: FontWeight.bold,
-                  color: const Color(0xFF4A6FDB),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Hi, $firstName",
+                  style: TextStyle(
+                    fontSize: isSmallScreen ? 20 : 24,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF4A6FDB),
+                  ),
                 ),
+                const SizedBox(height: 4),
+                Text(
+                  "What would you like to learn Today?",
+                  style: const TextStyle(fontSize: 14, color: Colors.grey),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.logout, size: 20),
+                color: Colors.grey[700],
+                onPressed: () async {
+                  await authProvider.signOut();
+                },
               ),
-              const SizedBox(height: 4),
-              const Text(
-                "What would you like to learn Today?",
-                style: TextStyle(fontSize: 14, color: Colors.grey),
+              IconButton(
+                icon: const Icon(Icons.notifications_none_outlined, size: 24),
+                color: Colors.grey[700],
+                onPressed: () {},
               ),
             ],
-          ),
-          IconButton(
-            icon: const Icon(Icons.notifications_none_outlined, size: 30),
-            color: Colors.grey[700],
-            onPressed: () {},
           ),
         ],
       ),

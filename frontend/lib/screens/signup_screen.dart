@@ -120,14 +120,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(
-            horizontal: 24.0,
-            vertical: isSmallScreen ? 16.0 : 24.0,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(height: isSmallScreen ? 20 : 40),
+              SizedBox(height: isSmallScreen ? 16 : 24),
               Center(
                 child: Text(
                   "Sign Up",
@@ -138,17 +135,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   ),
                 ),
               ),
-              SizedBox(height: isSmallScreen ? 30 : 50),
+              SizedBox(height: isSmallScreen ? 20 : 30),
               Form(
                 key: _formKey,
                 child: Column(
                   children: [
                     _buildNameField(),
-                    SizedBox(height: isSmallScreen ? 16 : 20),
+                    SizedBox(height: isSmallScreen ? 12 : 16),
                     _buildEmailField(),
-                    SizedBox(height: isSmallScreen ? 16 : 20),
+                    SizedBox(height: isSmallScreen ? 12 : 16),
                     _buildCountryField(),
-                    SizedBox(height: isSmallScreen ? 16 : 20),
+                    SizedBox(height: isSmallScreen ? 12 : 16),
                     _buildPasswordField(),
                   ],
                 ),
@@ -160,6 +157,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   onPressed: _isLoading ? null : _handleSignUp,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF6585D3),
+                    foregroundColor: Colors.white,
                   ),
                   child: _isLoading
                       ? const SizedBox(
@@ -188,21 +186,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 foregroundColor: Colors.black,
                 isGoogle: true,
               ),
-              SizedBox(height: isSmallScreen ? 12 : 20),
-              _buildSocialButton(
-                iconPath: 'assets/facebook_logo.png',
-                label: "Continue with Facebook",
-                backgroundColor: const Color(0xFF1877F2),
-                foregroundColor: Colors.white,
-              ),
-              SizedBox(height: isSmallScreen ? 12 : 20),
-              _buildSocialButton(
-                iconPath: 'assets/apple_logo.png',
-                label: "Continue with Apple",
-                backgroundColor: Colors.black,
-                foregroundColor: Colors.white,
-              ),
-              SizedBox(height: isSmallScreen ? 24 : 40),
+              SizedBox(height: isSmallScreen ? 16 : 24),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -332,15 +316,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
     final screenHeight = MediaQuery.of(context).size.height;
     final isSmallScreen = screenHeight < 700;
     
-    IconData iconData = Icons.error;
-    if (label.contains("Google")) iconData = Icons.g_mobiledata;
-    if (label.contains("Facebook")) iconData = Icons.facebook;
-    if (label.contains("Apple")) iconData = Icons.apple;
+    IconData iconData = Icons.g_mobiledata;
 
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton.icon(
-        icon: Icon(iconData, size: isSmallScreen ? 20 : 24),
+        icon: Image.asset(
+          'assets/google_logo.png',
+          width: isSmallScreen ? 20 : 24,
+          height: isSmallScreen ? 20 : 24,
+        ),
         label: Text(label),
         style: ElevatedButton.styleFrom(
           backgroundColor: backgroundColor,
