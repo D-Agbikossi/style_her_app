@@ -24,7 +24,6 @@ import 'package:flutter/services.dart';
 // Firebase imports
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 // State management
 import 'package:provider/provider.dart';
@@ -33,6 +32,7 @@ import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 import 'providers/auth_provider.dart';
 import 'providers/course_provider.dart';
+import 'routes.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/email_verification_screen.dart';
 import 'screens/home_screen.dart';
@@ -101,6 +101,7 @@ class MyApp extends StatelessWidget {
             systemOverlayStyle: SystemUiOverlayStyle.dark,
           ),
         ),
+        onGenerateRoute: AppRoutes.generateRoute,
         home: const AuthOrOnboarding(), // Initial screen based on auth state
       ),
     );
@@ -123,7 +124,7 @@ class _AuthOrOnboardingState extends State<AuthOrOnboarding> {
   void initState() {
     super.initState();
     // Uncomment the line below to force logout on app restart (for testing)
-    FirebaseAuth.instance.signOut();
+    // FirebaseAuth.instance.signOut();
   }
 
   @override

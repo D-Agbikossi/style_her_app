@@ -13,9 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 // Screen imports
-import 'package:frontend/screens/forgot_password_screen.dart';
-import 'package:frontend/screens/signup_screen.dart';
-import 'package:frontend/screens/interest_screen.dart';
+import 'package:frontend/routes.dart';
 
 // Provider imports
 import 'package:frontend/providers/auth_provider.dart';
@@ -79,9 +77,7 @@ class _LoginScreenState extends State<LoginScreen> {
         );
 
         if (mounted) {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => const InterestScreen()),
-          );
+          Navigator.of(context).pushReplacementNamed(AppRoutes.interest);
         }
       } catch (error) {
         if (mounted) {
@@ -142,11 +138,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 alignment: Alignment.centerRight,
                 child: TextButton(
                   onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const ForgotPasswordScreen(),
-                      ),
-                    );
+                    Navigator.of(context).pushNamed(AppRoutes.forgotPassword);
                   },
                   child: const Text(
                     "Forgot Password?",
@@ -200,11 +192,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   const Text("You don't have an account?"),
                   TextButton(
                     onPressed: () {
-                      Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(
-                          builder: (context) => const SignUpScreen(),
-                        ),
-                      );
+                      Navigator.of(context)
+                          .pushReplacementNamed(AppRoutes.signup);
                     },
                     child: const Text(
                       "Sign up",

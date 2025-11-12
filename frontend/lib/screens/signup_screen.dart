@@ -14,7 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 // Screen imports
-import 'package:frontend/screens/login_screen.dart';
+import 'package:frontend/routes.dart';
 
 
 // Provider imports
@@ -92,9 +92,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               duration: Duration(seconds: 5),
             ),
           );
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => const LoginScreen()),
-          );
+          Navigator.of(context).pushReplacementNamed(AppRoutes.login);
         }
       } catch (error) {
         if (mounted) {
@@ -193,11 +191,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   const Text("Already have an account?"),
                   TextButton(
                     onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => const LoginScreen(),
-                        ),
-                      );
+                      Navigator.of(context).pushNamed(AppRoutes.login);
                     },
                     child: const Text(
                       "Sign in",

@@ -13,7 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 // Screen imports
-import 'package:frontend/screens/signup_screen.dart';
+import 'package:frontend/routes.dart';
 
 // Theme imports
 import 'package:frontend/main.dart';
@@ -166,9 +166,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
    * Skip onboarding and navigate to sign up screen
    */
   void _skipToSignUp() {
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (context) => const SignUpScreen()),
-    );
+    Navigator.of(context).pushReplacementNamed(AppRoutes.signup);
   }
 }
 

@@ -17,6 +17,7 @@ import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 // Provider imports
 import '../providers/auth_provider.dart';
 import '../providers/course_provider.dart';
+import '../routes.dart';
 
 // Model imports
 import '../models/course.dart';
@@ -169,6 +170,13 @@ class _HomeScreenState extends State<HomeScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               IconButton(
+                icon: const Icon(Icons.menu_book_outlined, size: 22),
+                color: Colors.grey[700],
+                onPressed: () {
+                  Navigator.of(context).pushNamed(AppRoutes.myCourses);
+                },
+              ),
+              IconButton(
                 icon: const Icon(Icons.logout, size: 20),
                 color: Colors.grey[700],
                 onPressed: () async {
@@ -178,7 +186,9 @@ class _HomeScreenState extends State<HomeScreen> {
               IconButton(
                 icon: const Icon(Icons.notifications_none_outlined, size: 24),
                 color: Colors.grey[700],
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.of(context).pushNamed(AppRoutes.notifications);
+                },
               ),
             ],
           ),
@@ -318,6 +328,13 @@ class _HomeScreenState extends State<HomeScreen> {
    * @param title The section title
    */
   Widget _buildSectionHeader(String title) {
+    VoidCallback? onTap;
+    if (title == "Popular Courses") {
+      onTap = () => Navigator.of(context).pushNamed(AppRoutes.popularCourses);
+    } else if (title == "Top Mentor") {
+      onTap = () => Navigator.of(context).pushNamed(AppRoutes.topMentors);
+    }
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20.0),
       child: Row(
@@ -332,7 +349,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           TextButton(
-            onPressed: () {},
+            onPressed: onTap,
             child: const Text(
               "SEE ALL",
               style: TextStyle(
