@@ -13,9 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 // Screen imports
-import 'package:frontend/screens/forgot_password_screen.dart';
-import 'package:frontend/screens/signup_screen.dart';
-import 'package:frontend/screens/interest_screen.dart';
+import 'package:frontend/routes.dart';
 
 // Provider imports
 import 'package:frontend/providers/auth_provider.dart';
@@ -79,9 +77,7 @@ class _LoginScreenState extends State<LoginScreen> {
         );
 
         if (mounted) {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => const InterestScreen()),
-          );
+          Navigator.of(context).pushReplacementNamed(AppRoutes.interest);
         }
       } catch (error) {
         if (mounted) {
@@ -110,22 +106,23 @@ class _LoginScreenState extends State<LoginScreen> {
     
     return Scaffold(
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(
-            horizontal: 24.0,
-            vertical: isSmallScreen ? 16.0 : 24.0,
-          ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(height: isSmallScreen ? 40 : 60),
+              SizedBox(height: isSmallScreen ? 20 : 40),
               Center(
                 child: Text(
                   "Login",
-                  style: Theme.of(context).textTheme.displayLarge,
+                  style: const TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFF6585D3),
+                  ),
                 ),
               ),
-              SizedBox(height: isSmallScreen ? 30 : 50),
+              SizedBox(height: isSmallScreen ? 20 : 30),
               Form(
                 key: _formKey,
                 child: Column(
@@ -136,16 +133,12 @@ class _LoginScreenState extends State<LoginScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 8),
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton(
                   onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const ForgotPasswordScreen(),
-                      ),
-                    );
+                    Navigator.of(context).pushNamed(AppRoutes.forgotPassword);
                   },
                   child: const Text(
                     "Forgot Password?",
@@ -156,28 +149,35 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
               ),
-              SizedBox(height: isSmallScreen ? 20 : 30),
+              SizedBox(height: isSmallScreen ? 16 : 24),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : _handleLogin,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF6585D3),
+                    foregroundColor: Colors.white,
+                  ),
                   child: _isLoading
                       ? const SizedBox(
                           height: 20,
                           width: 20,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Text("Login"),
+                      : const Text(
+                          "Login",
+                          style: TextStyle(fontWeight: FontWeight.w700),
+                        ),
                 ),
               ),
-              SizedBox(height: isSmallScreen ? 24 : 40),
+              SizedBox(height: isSmallScreen ? 20 : 30),
               const Center(
                 child: Text(
                   "Or sign up with",
                   style: TextStyle(color: Colors.grey),
                 ),
               ),
-              SizedBox(height: isSmallScreen ? 20 : 30),
+              SizedBox(height: isSmallScreen ? 16 : 20),
               _buildSocialButton(
                 iconPath: 'assets/google_logo.png',
                 label: "Continue with Google",
@@ -185,32 +185,15 @@ class _LoginScreenState extends State<LoginScreen> {
                 foregroundColor: Colors.black,
                 isGoogle: true,
               ),
-              SizedBox(height: isSmallScreen ? 12 : 20),
-              _buildSocialButton(
-                iconPath: 'assets/facebook_logo.png',
-                label: "Continue with Facebook",
-                backgroundColor: const Color(0xFF1877F2),
-                foregroundColor: Colors.white,
-              ),
-              SizedBox(height: isSmallScreen ? 12 : 20),
-              _buildSocialButton(
-                iconPath: 'assets/apple_logo.png',
-                label: "Continue with Apple",
-                backgroundColor: Colors.black,
-                foregroundColor: Colors.white,
-              ),
-              SizedBox(height: isSmallScreen ? 30 : 50),
+              SizedBox(height: isSmallScreen ? 16 : 24),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const Text("You don't have an account?"),
                   TextButton(
                     onPressed: () {
-                      Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(
-                          builder: (context) => const SignUpScreen(),
-                        ),
-                      );
+                      Navigator.of(context)
+                          .pushReplacementNamed(AppRoutes.signup);
                     },
                     child: const Text(
                       "Sign up",
@@ -305,15 +288,16 @@ class _LoginScreenState extends State<LoginScreen> {
     final screenHeight = MediaQuery.of(context).size.height;
     final isSmallScreen = screenHeight < 700;
     
-    IconData iconData = Icons.error;
-    if (label.contains("Google")) iconData = Icons.g_mobiledata;
-    if (label.contains("Facebook")) iconData = Icons.facebook;
-    if (label.contains("Apple")) iconData = Icons.apple;
+    IconData iconData = Icons.g_mobiledata;
 
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton.icon(
-        icon: Icon(iconData, size: isSmallScreen ? 20 : 24),
+        icon: Image.asset(
+          'assets/google_logo.png',
+          width: isSmallScreen ? 20 : 24,
+          height: isSmallScreen ? 20 : 24,
+        ),
         label: Text(label),
         style: ElevatedButton.styleFrom(
           backgroundColor: backgroundColor,

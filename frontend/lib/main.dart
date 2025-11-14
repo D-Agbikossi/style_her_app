@@ -5,14 +5,17 @@ import 'package:flutter/services.dart';
 // Firebase imports
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
+
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:frontend/screens/my%20courses.dart';
 import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 import 'providers/auth_provider.dart';
 import 'providers/course_provider.dart';
+import 'routes.dart';
 import 'screens/onboarding_screen.dart';
 import 'theme.dart';
+import 'screens/email_verification_screen.dart';
+import 'screens/home_screen.dart';
 
 class StyleHerAppState extends StatefulWidget {
   const StyleHerAppState({super.key});
@@ -78,14 +81,33 @@ class MyApp extends StatelessWidget {
             systemOverlayStyle: SystemUiOverlayStyle.dark,
           ),
         ),
+        onGenerateRoute: AppRoutes.generateRoute,
         home: const AuthOrOnboarding(), // Initial screen based on auth state
       ),
     );
   }
-}
 
 class AuthOrOnboarding extends StatelessWidget {
+=======
+/**
+ * Authentication decision widget
+ * Determines whether to show onboarding or main app based on user login status
+ */
+class AuthOrOnboarding extends StatefulWidget {
+>>>>>>> origin/main
   const AuthOrOnboarding({super.key});
+
+  @override
+  State<AuthOrOnboarding> createState() => _AuthOrOnboardingState();
+}
+
+class _AuthOrOnboardingState extends State<AuthOrOnboarding> {
+  @override
+  void initState() {
+    super.initState();
+    // Uncomment the line below to force logout on app restart (for testing)
+    // FirebaseAuth.instance.signOut();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -100,8 +122,13 @@ class AuthOrOnboarding extends StatelessWidget {
           );
         }
 
-        // User is logged in - show main app
+        // User is logged in
         if (snapshot.hasData) {
+          final user = snapshot.data!;
+          // Check if email is verified
+          if (!user.emailVerified) {
+            return const EmailVerificationScreen();
+          }
           return const AuthWrapper();
         } else {
           // User is not logged in - show onboarding
@@ -117,9 +144,11 @@ class AuthWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       appBar: AppBar(title: const Text('StyleHer')),
       body: const Center(child: Text('Welcome back!')),
     );
+    return const HomeScreen();
   }
 }
