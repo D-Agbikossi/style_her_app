@@ -576,6 +576,7 @@ class _CourseCard extends StatelessWidget {
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -585,40 +586,45 @@ class _CourseCard extends StatelessWidget {
                       style: const TextStyle(
                         color: kPrimaryColor,
                         fontWeight: FontWeight.bold,
-                        fontSize: 12,
+                        fontSize: 10,
                       ),
                     ),
-                    const Icon(Icons.bookmark_border, color: kPrimaryColor),
+                    const Icon(Icons.bookmark_border, color: kPrimaryColor, size: 18),
                   ],
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 6),
                 Text(
                   title,
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 16,
+                    fontSize: 14,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 6),
                 Row(
                   children: [
-                    Text(level, style: TextStyle(color: Colors.grey[700])),
-                    const SizedBox(width: 8),
-                    Icon(Icons.star, color: Colors.amber, size: 16),
+                    Flexible(
+                      child: Text(
+                        level,
+                        style: TextStyle(color: Colors.grey[700], fontSize: 12),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
                     const SizedBox(width: 4),
+                    Icon(Icons.star, color: Colors.amber, size: 14),
+                    const SizedBox(width: 2),
                     Text(
                       "$rating",
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 4),
                     Flexible(
                       child: Text(
                         "| $modules Modules",
-                        style: TextStyle(color: Colors.grey[700]),
+                        style: TextStyle(color: Colors.grey[700], fontSize: 12),
                         overflow: TextOverflow.ellipsis,
-                        softWrap: false,
                       ),
                     ),
                   ],
