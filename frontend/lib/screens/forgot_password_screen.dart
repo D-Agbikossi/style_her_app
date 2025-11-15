@@ -19,6 +19,11 @@ import '../utils/validators.dart';
 // Theme imports
 import '../main.dart';
 
+const kScaffoldBackground = Color(0xFFF5F5F5); // light gray background
+
+const Color kPrimaryColor = Color(0xFF2C5BB1); // Main brand blue
+const Color kBackgroundColor = Color(0xFFF5F9FF); // App background color
+
 /**
  * Forgot Password Screen
  * 

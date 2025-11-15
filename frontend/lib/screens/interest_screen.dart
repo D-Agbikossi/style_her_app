@@ -16,6 +16,9 @@ import 'package:frontend/screens/home_screen.dart';
 // Theme imports
 import '../main.dart';
 
+const Color kPrimaryColor = Color(0xFF2C5BB1); // Main brand blue
+const Color kBackgroundColor = Color(0xFFF5F9FF); // App background color
+
 /**
  * Interest Selection Screen
  * 
@@ -57,7 +60,7 @@ class _InterestScreenState extends State<InterestScreen> {
    */
   final Set<String> _selectedInterests = {};
 
-/**
+  /**
    * Build the interest selection screen UI
    * Includes title, subtitle, interest chips, and navigation buttons
    */
@@ -157,7 +160,7 @@ class _InterestScreenState extends State<InterestScreen> {
     );
   }
 
-/**
+  /**
    * Navigate to home screen
    * Used for both Next and Skip actions
    * Replaces current route to prevent back navigation

@@ -1,165 +1,116 @@
 /**
  * StyleHer - Beauty Learning Platform
- * 
- * Main application entry point for the StyleHer Flutter app.
- * This app provides a platform for beauty professionals to learn,
- * connect with mentors, and find job opportunities.
- * 
+ *
+ * Main entry point for the StyleHer Flutter app.
  * Features:
- * - User authentication (login/signup/password reset)
- * - Course browsing and enrollment
- * - Community posts and interactions
- * - Job opportunities
- * 
- * Tech Stack:
- * - Flutter for cross-platform UI
- * - Firebase for backend services (Auth, Firestore, Storage)
- * - Provider for state management
+ * - User authentication
+ * - Course browsing
+ * - Mentorship connections
+ * - Notifications and job opportunities
  */
 
-// Flutter framework imports
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
-// Firebase imports
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
 import 'package:cloud_firestore/cloud_firestore.dart';
-
-// State management
 import 'package:provider/provider.dart';
 
-// App-specific imports
+// Local imports
 import 'firebase_options.dart';
-<<<<<<< Updated upstream
 import 'providers/auth_provider.dart';
 import 'providers/course_provider.dart';
 import 'screens/onboarding_screen.dart';
+import 'screens/notifications_screen.dart';
+import 'screens/popular_courses_screen.dart';
+import 'screens/top_mentors_screen.dart';
+import 'screens/mentor_info_screen.dart';
+import 'screens/course_detail_screen.dart';
+import 'screens/courses_completed_screen.dart';
+import 'screens/course_certification_screen.dart';
 
-/**
- * Application entry point
- * Initializes Firebase and runs the main app
- */
-=======
-import 'services/firestore_test.dart'; // 👈 import the test file
-
-// Import the screens
-import 'notifications_screen.dart';
-import 'popular_courses_screen.dart';
-import 'top_mentors_screen.dart';
-
-// --- Color Helpers & Global Colors ---
+/// Convert a hex color code to [Color]
 Color hexToColor(String hexCode) {
   String colorString = 'FF${hexCode.substring(1)}';
   return Color(int.parse(colorString, radix: 16));
 }
 
-// Background: #F5F9FF, Primary: #2C5BB1)
+// --- Global Colors ---
 final Color kBackgroundColor = hexToColor('#F5F9FF');
-final Color kPrimaryBlue = hexToColor('#2C5BB1'); // Used for icons/buttons
+final Color kPrimaryBlue = hexToColor('#2C5BB1');
 
-// --- Main Entry Point ---
-
->>>>>>> Stashed changes
+/// --- APP ENTRY POINT ---
 Future<void> main() async {
-  // Ensure Flutter binding is initialized before Firebase
   WidgetsFlutterBinding.ensureInitialized();
-<<<<<<< Updated upstream
-
-  // Initialize Firebase with platform-specific configuration
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-
-  // Run the main application
   runApp(const MyApp());
 }
 
-/**
- * App Color Scheme
- * Consistent color palette used throughout the application
- */
-const Color kPrimaryColor = Color(0xFF6A88E3); // Main brand color (blue)
-const Color kPrimaryText = Color(
-  0xFF4A6FDB,
-); // Primary text color (darker blue)
-const Color kScaffoldBackground = Colors.white; // Background color for screens
-=======
-  try {
-    // Replace with your actual Firebase initialization if needed
-    // await Firebase.initializeApp(
-    //   options: DefaultFirebaseOptions.currentPlatform,
-    // );
-  } catch (e) {
-    // Handle initialization error
-  }
-
-  runApp(const MyApp());
-}
-
-// --- App Root Widget ---
->>>>>>> Stashed changes
-
-/**
- * Root widget of the StyleHer application
- * Sets up providers, theme, and initial routing
- */
+/// --- ROOT WIDGET ---
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-<<<<<<< Updated upstream
-    // Configure system UI (status bar)
     SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
         statusBarIconBrightness: Brightness.dark,
       ),
-=======
-    return MaterialApp(
-      title: 'Style Her App',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primaryColor: kPrimaryBlue,
-        scaffoldBackgroundColor: kBackgroundColor,
-        fontFamily: 'Roboto',
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.white,
-          elevation: 0,
-          iconTheme: IconThemeData(color: Colors.black),
-        ),
-      ),
-      // Start directly on the new navigation screen
-      home: const MainNavigationScreen(),
->>>>>>> Stashed changes
     );
 
-<<<<<<< Updated upstream
-    // Set up providers for state management
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(
-          create: (_) => AuthProvider(),
-        ),
-        ChangeNotifierProvider(
-          create: (_) => CourseProvider(),
-        ),
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => CourseProvider()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'StyleHer',
         theme: ThemeData(
-          primarySwatch: Colors.blue,
-          scaffoldBackgroundColor: kScaffoldBackground,
+          primaryColor: kPrimaryBlue,
+          scaffoldBackgroundColor: kBackgroundColor,
           appBarTheme: const AppBarTheme(
+            backgroundColor: Colors.white,
             elevation: 0,
-            backgroundColor: Colors.transparent,
-            systemOverlayStyle: SystemUiOverlayStyle.dark,
+            iconTheme: IconThemeData(color: Colors.black),
           ),
+          fontFamily: 'Roboto',
         ),
-        home: const AuthOrOnboarding(), // Initial screen based on auth state
-=======
-// --- New Main Navigation Screen (Manages Bottom Bar) ---
+        home: const AuthOrOnboarding(),
+      ),
+    );
+  }
+}
 
+/// --- AUTH WRAPPER (Handles login state) ---
+class AuthOrOnboarding extends StatelessWidget {
+  const AuthOrOnboarding({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        // If user is logged in, go to main navigation
+        if (snapshot.hasData) {
+          return const MainNavigationScreen();
+        } else {
+          // Otherwise show onboarding
+          return const OnboardingScreen();
+        }
+      },
+    );
+  }
+}
+
+/// --- MAIN NAVIGATION SCREEN ---
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
 
@@ -170,124 +121,49 @@ class MainNavigationScreen extends StatefulWidget {
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int _selectedIndex = 0;
 
-  // List of screens to be displayed in the body of the Scaffold
   final List<Widget> _screens = [
-    // Placeholder for a proper home screen (currently showing courses)
     const PopularCoursesScreen(),
     const TopMentorsScreen(),
     const NotificationsScreen(),
-    // Placeholder for two more typical navigation items (e.g., Profile, Search)
-    const Center(child: Text('Placeholder Screen 4 (e.g., Search)')),
-    const Center(child: Text('Placeholder Screen 5 (e.g., Profile)')),
+    const Center(child: Text('Search Screen Placeholder')),
+    const Center(child: Text('Profile Screen Placeholder')),
   ];
 
   void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
+    setState(() => _selectedIndex = index);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // The current screen is displayed here
       body: _screens[_selectedIndex],
-
       bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
+        items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.school_outlined),
-            label: 'Courses', // Mapped to PopularCoursesScreen
+            label: 'Courses',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.people_outline),
-            label: 'Mentors', // Mapped to TopMentorsScreen
+            label: 'Mentors',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.notifications_outlined),
-            label: 'Alerts', // Mapped to NotificationsScreen
+            label: 'Alerts',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.search),
-            label: 'Search', // Placeholder
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Search'),
           BottomNavigationBarItem(
             icon: Icon(Icons.person_outline),
-            label: 'Profile', // Placeholder
+            label: 'Profile',
           ),
         ],
         currentIndex: _selectedIndex,
-        selectedItemColor: kPrimaryBlue, // Use the primary blue color
+        selectedItemColor: kPrimaryBlue,
         unselectedItemColor: Colors.grey,
-        showUnselectedLabels: true, // Keep labels visible
-        backgroundColor: Colors.white,
-        elevation: 8,
-        type: BottomNavigationBarType.fixed, // Important for more than 3 items
+        showUnselectedLabels: true,
+        type: BottomNavigationBarType.fixed,
         onTap: _onItemTapped,
->>>>>>> Stashed changes
       ),
-    );
-  }
-}
-
-<<<<<<< Updated upstream
-/**
- * Authentication decision widget
- * Determines whether to show onboarding or main app based on user login status
- */
-class AuthOrOnboarding extends StatelessWidget {
-  const AuthOrOnboarding({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    // Listen to authentication state changes
-    return StreamBuilder<User?>(
-      stream: FirebaseAuth.instance.authStateChanges(),
-      builder: (context, snapshot) {
-        // Show loading while checking auth state
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
-        }
-
-        // User is logged in - show main app
-        if (snapshot.hasData) {
-          return const AuthWrapper();
-        } else {
-          // User is not logged in - show onboarding
-          return const OnboardingScreen();
-        }
-      },
-    );
-  }
-}
-
-class AuthWrapper extends StatelessWidget {
-  const AuthWrapper({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    // Replace this with your real authenticated root (e.g., HomeScreen or a navigation scaffold)
-    return Scaffold(
-      appBar: AppBar(title: const Text('StyleHer')),
-      body: const Center(child: Text('Welcome back!')),
-=======
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Style Her App')),
-      body: const Center(
-        child: Text(
-          'Welcome to Style Her — Firestore test ran successfully!',
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 18),
-        ),
-      ),
->>>>>>> Stashed changes
     );
   }
 }
