@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../theme.dart';
 import '../widgets/job_card.dart';
 
 class MarketplaceScreen extends StatelessWidget {
@@ -9,9 +8,17 @@ class MarketplaceScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: ()=>Navigator.pop(context)),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
         title: const Text('Market Place'),
-        actions: const [Padding(padding: EdgeInsets.only(right:16), child: Icon(Icons.search))],
+        actions: const [
+          Padding(
+            padding: EdgeInsets.only(right: 16),
+            child: Icon(Icons.search),
+          ),
+        ],
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),

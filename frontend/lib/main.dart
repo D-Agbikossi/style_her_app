@@ -6,7 +6,6 @@ import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 import 'providers/auth_provider.dart';
@@ -15,8 +14,10 @@ import 'routes.dart';
 import 'screens/onboarding_screen.dart';
 import 'theme.dart';
 import 'screens/email_verification_screen.dart';
-import 'screens/home_screen.dart';
+import '../screens/bottom_navigation_screen.dart';
 
+// This StyleHerAppState is not being used in your main() function.
+// You can likely remove it, as main() runs MyApp() directly.
 class StyleHerAppState extends StatefulWidget {
   const StyleHerAppState({super.key});
 
@@ -33,6 +34,7 @@ class StyleHerAppStateState extends State<StyleHerAppState> {
     );
   }
 }
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
@@ -41,12 +43,10 @@ Future<void> main() async {
   runApp(const MyApp());
 }
 
+const Color kPrimaryColor = Color(0xFF6A88E3); //
+const Color kPrimaryText = Color(0xFF4A6FDB);
+const Color kScaffoldBackground = Colors.white; //
 
-const Color kPrimaryColor = Color(0xFF6A88E3); // 
-const Color kPrimaryText = Color(
-  0xFF4A6FDB,
-);
-const Color kScaffoldBackground = Colors.white; // 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -62,12 +62,8 @@ class MyApp extends StatelessWidget {
     // Set up providers for state management
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(
-          create: (_) => AuthProvider(),
-        ),
-        ChangeNotifierProvider(
-          create: (_) => CourseProvider(),
-        ),
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => CourseProvider()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -123,26 +119,11 @@ class _AuthOrOnboardingState extends State<AuthOrOnboarding> {
           if (!user.emailVerified) {
             return const EmailVerificationScreen();
           }
-          return const AuthWrapper();
+          return const MainNavigationScreen();
         } else {
-          // User is not logged in - show onboarding
           return const OnboardingScreen();
         }
       },
     );
-  }
-}
-
-class AuthWrapper extends StatelessWidget {
-  const AuthWrapper({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-
-    return Scaffold(
-      appBar: AppBar(title: const Text('StyleHer')),
-      body: const Center(child: Text('Welcome back!')),
-    );
-    return const HomeScreen();
   }
 }

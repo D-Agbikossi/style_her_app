@@ -1,7 +1,6 @@
 /**
  * Interest Selection Screen
- * 
- * This screen allows users to select their interests:
+ * * This screen allows users to select their interests:
  * - Display available interest categories
  * - Multi-select interest chips
  * - Navigation to home screen
@@ -16,10 +15,14 @@ import 'package:frontend/routes.dart';
 // Theme imports
 import '../main.dart';
 
+// --- ADD THIS IMPORT ---
+// This is the file that contains your MainNavigationScreen
+import 'bottom_navigation_screen.dart';
+// --- END IMPORT ---
+
 /**
  * Interest Selection Screen
- * 
- * Main widget for interest selection functionality
+ * * Main widget for interest selection functionality
  */
 class InterestScreen extends StatefulWidget {
   const InterestScreen({super.key});
@@ -30,8 +33,7 @@ class InterestScreen extends StatefulWidget {
 
 /**
  * Interest Selection Screen State
- * 
- * Manages available interests and user selections
+ * * Manages available interests and user selections
  */
 class _InterestScreenState extends State<InterestScreen> {
   /**
@@ -57,7 +59,7 @@ class _InterestScreenState extends State<InterestScreen> {
    */
   final Set<String> _selectedInterests = {};
 
-/**
+  /**
    * Build the interest selection screen UI
    * Includes title, subtitle, interest chips, and navigation buttons
    */
@@ -157,12 +159,18 @@ class _InterestScreenState extends State<InterestScreen> {
     );
   }
 
-/**
+  /**
    * Navigate to home screen
    * Used for both Next and Skip actions
    * Replaces current route to prevent back navigation
    */
   void _navigateToHome() {
-    Navigator.of(context).pushReplacementNamed(AppRoutes.home);
+    // --- THIS IS THE FIX ---
+    // Instead of navigating to a named route, we navigate
+    // to the actual screen that has the Bottom Nav Bar.
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (context) => const MainNavigationScreen()),
+    );
+    // --- END FIX ---
   }
 }
