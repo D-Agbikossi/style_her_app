@@ -19,6 +19,9 @@ import 'package:frontend/routes.dart';
 // Provider imports
 import 'package:frontend/providers/auth_provider.dart';
 
+// Services imports
+import '../services/google_auth_service.dart';
+
 // Theme imports
 import '../main.dart';
 
@@ -383,7 +386,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
             fontWeight: FontWeight.w600
           ),
         ),
-        onPressed: () {},
+        onPressed: () async {
+          try {
+            await GoogleAuthService.signInWithGoogle();
+          } catch (e) {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Google sign-in failed: $e')),
+              );
+            }
+          }
+        },
       ),
     );
   }
