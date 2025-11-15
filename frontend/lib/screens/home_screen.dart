@@ -17,6 +17,7 @@ import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 // Provider imports
 import '../providers/auth_provider.dart';
 import '../providers/course_provider.dart';
+import '../routes.dart';
 
 // Model imports
 import '../models/course.dart';
@@ -94,20 +95,35 @@ class _HomeScreenState extends State<HomeScreen> {
    */
   @override
   Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isSmallScreen = screenHeight < 700;
+    
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
+          padding: EdgeInsets.symmetric(
+            horizontal: isSmallScreen ? 8.0 : 12.0,
+            vertical: isSmallScreen ? 4.0 : 8.0,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildHeader(),
+              SizedBox(height: isSmallScreen ? 2 : 4),
               _buildSearchBar(),
+              SizedBox(height: isSmallScreen ? 2 : 4),
               _buildSpecialOfferBanner(),
+              SizedBox(height: isSmallScreen ? 2 : 4),
               _buildSectionHeader("Popular Courses"),
+              SizedBox(height: isSmallScreen ? 1 : 2),
               _buildCategoryChips(),
+              SizedBox(height: isSmallScreen ? 2 : 4),
               _buildPopularCoursesList(),
+              SizedBox(height: isSmallScreen ? 4 : 8),
               _buildSectionHeader("Top Mentor"),
+              SizedBox(height: isSmallScreen ? 2 : 4),
               _buildTopMentorList(),
+              SizedBox(height: isSmallScreen ? 4 : 8),
             ],
           ),
         ),
@@ -123,32 +139,61 @@ class _HomeScreenState extends State<HomeScreen> {
     final userName = authProvider.profile?.displayName ?? 'User';
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
+      padding: EdgeInsets.fromLTRB(
+        isSmallScreen ? 12 : 16, 
+        isSmallScreen ? 8 : 12, 
+        isSmallScreen ? 12 : 16, 
+        isSmallScreen ? 4 : 8
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "Hi, ${userName.toUpperCase()}",
-                style: const TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF4A6FDB),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Hi, $firstName",
+                  style: TextStyle(
+                    fontSize: isSmallScreen ? 20 : 24,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF4A6FDB),
+                  ),
                 ),
+                const SizedBox(height: 4),
+                Text(
+                  "What would you like to learn Today?",
+                  style: const TextStyle(fontSize: 14, color: Colors.grey),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.menu_book_outlined, size: 22),
+                color: Colors.grey[700],
+                onPressed: () {
+                  Navigator.of(context).pushNamed(AppRoutes.myCourses);
+                },
               ),
-              const SizedBox(height: 4),
-              const Text(
-                "What would you like to learn Today?",
-                style: TextStyle(fontSize: 14, color: Colors.grey),
+              IconButton(
+                icon: const Icon(Icons.logout, size: 20),
+                color: Colors.grey[700],
+                onPressed: () async {
+                  await authProvider.signOut();
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.notifications_none_outlined, size: 24),
+                color: Colors.grey[700],
+                onPressed: () {
+                  Navigator.of(context).pushNamed(AppRoutes.notifications);
+                },
               ),
             ],
-          ),
-          IconButton(
-            icon: const Icon(Icons.notifications_none_outlined, size: 30),
-            color: Colors.grey[700],
-            onPressed: () {},
           ),
         ],
       ),
@@ -162,7 +207,10 @@ class _HomeScreenState extends State<HomeScreen> {
     final courseProvider = Provider.of<CourseProvider>(context);
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      padding: EdgeInsets.symmetric(
+        horizontal: isSmallScreen ? 12 : 16, 
+        vertical: isSmallScreen ? 4 : 8
+      ),
       child: TextField(
         onChanged: (value) {
           setState(() {
@@ -195,10 +243,13 @@ class _HomeScreenState extends State<HomeScreen> {
    * Build the special offer banner with discount information
    */
   Widget _buildSpecialOfferBanner() {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isSmallScreen = screenHeight < 700;
+    
     return Padding(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
       child: Container(
-        height: 160,
+        height: isSmallScreen ? 140 : 160,
         decoration: BoxDecoration(
           color: kPrimaryColor,
           borderRadius: BorderRadius.circular(20),
@@ -278,6 +329,13 @@ class _HomeScreenState extends State<HomeScreen> {
    * @param title The section title
    */
   Widget _buildSectionHeader(String title) {
+    VoidCallback? onTap;
+    if (title == "Popular Courses") {
+      onTap = () => Navigator.of(context).pushNamed(AppRoutes.popularCourses);
+    } else if (title == "Top Mentor") {
+      onTap = () => Navigator.of(context).pushNamed(AppRoutes.topMentors);
+    }
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20.0),
       child: Row(
@@ -292,7 +350,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           TextButton(
-            onPressed: () {},
+            onPressed: onTap,
             child: const Text(
               "SEE ALL",
               style: TextStyle(
@@ -360,22 +418,27 @@ class _HomeScreenState extends State<HomeScreen> {
       return const Center(child: Text('No courses available'));
     }
 
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isSmallScreen = screenHeight < 700;
+    
     return SizedBox(
-      height: 250,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 15),
+      height: isSmallScreen ? 220 : 250,
+      child: PageView.builder(
+        controller: PageController(viewportFraction: 0.85),
         itemCount: courses.length,
         itemBuilder: (context, index) {
           final course = courses[index];
-          return _CourseCard(
-            title: course.title,
-            category: course.category,
-            rating: course.rating,
-            modules: course.lessonCount,
-            level: course.difficulty,
-            price: course.isFree ? null : course.price,
-            thumbnailUrl: course.thumbnailUrl,
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4.0),
+            child: _CourseCard(
+              title: course.title,
+              category: course.category,
+              rating: course.rating,
+              modules: course.lessonCount,
+              level: course.difficulty,
+              price: course.isFree ? null : course.price,
+              thumbnailUrl: course.thumbnailUrl,
+            ),
           );
         },
       ),
@@ -461,9 +524,15 @@ class _CourseCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isSmallScreen = screenHeight < 700;
+    
     return Container(
-      width: 220,
-      margin: const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
+      width: double.infinity,
+      margin: EdgeInsets.symmetric(
+        horizontal: 5, 
+        vertical: isSmallScreen ? 8 : 10
+      ),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(15),
@@ -480,7 +549,7 @@ class _CourseCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            height: 120,
+            height: isSmallScreen ? 100 : 120,
             decoration: BoxDecoration(
               color: Colors.black,
               borderRadius: const BorderRadius.vertical(
@@ -510,6 +579,7 @@ class _CourseCard extends StatelessWidget {
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -519,40 +589,45 @@ class _CourseCard extends StatelessWidget {
                       style: const TextStyle(
                         color: kPrimaryColor,
                         fontWeight: FontWeight.bold,
-                        fontSize: 12,
+                        fontSize: 10,
                       ),
                     ),
-                    const Icon(Icons.bookmark_border, color: kPrimaryColor),
+                    const Icon(Icons.bookmark_border, color: kPrimaryColor, size: 18),
                   ],
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 6),
                 Text(
                   title,
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 16,
+                    fontSize: 14,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 6),
                 Row(
                   children: [
-                    Text(level, style: TextStyle(color: Colors.grey[700])),
-                    const SizedBox(width: 8),
-                    Icon(Icons.star, color: Colors.amber, size: 16),
+                    Flexible(
+                      child: Text(
+                        level,
+                        style: TextStyle(color: Colors.grey[700], fontSize: 12),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
                     const SizedBox(width: 4),
+                    Icon(Icons.star, color: Colors.amber, size: 14),
+                    const SizedBox(width: 2),
                     Text(
                       "$rating",
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 4),
                     Flexible(
                       child: Text(
                         "| $modules Modules",
-                        style: TextStyle(color: Colors.grey[700]),
+                        style: TextStyle(color: Colors.grey[700], fontSize: 12),
                         overflow: TextOverflow.ellipsis,
-                        softWrap: false,
                       ),
                     ),
                   ],

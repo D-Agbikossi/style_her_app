@@ -20,6 +20,7 @@ import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 import 'providers/auth_provider.dart';
 import 'providers/course_provider.dart';
+import 'routes.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/notifications_screen.dart';
 import 'screens/popular_courses_screen.dart';
@@ -115,7 +116,7 @@ class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
 
   @override
-  State<MainNavigationScreen> createState() => _MainNavigationScreenState();
+  State<AuthOrOnboarding> createState() => _AuthOrOnboardingState();
 }
 
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
@@ -165,5 +166,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         onTap: _onItemTapped,
       ),
     );
+    return const HomeScreen();
   }
 }

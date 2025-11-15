@@ -19,6 +19,9 @@ import 'package:frontend/screens/login_screen.dart';
 // Provider imports
 import 'package:frontend/providers/auth_provider.dart';
 
+// Services imports
+import '../services/google_auth_service.dart';
+
 // Theme imports
 import '../main.dart';
 
@@ -49,11 +52,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _formKey = GlobalKey<FormState>(); // Form validation key
   final _nameController = TextEditingController(); // Name input controller
   final _emailController = TextEditingController(); // Email input controller
-  final _countryController =
-      TextEditingController(); // Country input controller
-  final _passwordController =
-      TextEditingController(); // Password input controller
+  final _passwordController = TextEditingController(); // Password input controller
   bool _isLoading = false; // Loading state for async operations
+  String? _selectedCountry; // Selected country from dropdown
+  
+  final List<String> _countries = [
+    'Nigeria', 'Kenya', 'Rwanda', 'Ghana', 'South Africa', 'Uganda', 'Tanzania',
+    'Ethiopia', 'Morocco', 'Egypt', 'Algeria', 'Tunisia', 'Cameroon', 'Ivory Coast',
+    'Senegal', 'Mali', 'Burkina Faso', 'Niger', 'Guinea', 'Benin', 'Togo',
+    'Sierra Leone', 'Liberia', 'Mauritania', 'Gambia', 'Cape Verde'
+  ];
 
   /**
    * Clean up controllers when widget is disposed
@@ -63,7 +71,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
-    _countryController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -87,15 +94,20 @@ class _SignUpScreenState extends State<SignUpScreen> {
         );
 
         if (mounted) {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => const LoginScreen()),
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Account created! Please check your email to verify your account.'),
+              backgroundColor: kPrimaryColor,
+              duration: Duration(seconds: 5),
+            ),
           );
+          Navigator.of(context).pushReplacementNamed(AppRoutes.login);
         }
       } catch (error) {
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(error.toString())));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(error.toString())),
+          );
         }
       } finally {
         if (mounted) {
@@ -115,57 +127,65 @@ class _SignUpScreenState extends State<SignUpScreen> {
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(
-            horizontal: 24.0,
-            vertical: isSmallScreen ? 16.0 : 24.0,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(height: isSmallScreen ? 20 : 40),
+              SizedBox(height: isSmallScreen ? 16 : 24),
               Center(
                 child: Text(
                   "Sign Up",
-                  style: Theme.of(context).textTheme.displayLarge,
+                  style: const TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFF6585D3),
+                  ),
                 ),
               ),
-              SizedBox(height: isSmallScreen ? 30 : 50),
+              SizedBox(height: isSmallScreen ? 20 : 30),
               Form(
                 key: _formKey,
                 child: Column(
                   children: [
                     _buildNameField(),
-                    SizedBox(height: isSmallScreen ? 16 : 20),
+                    SizedBox(height: isSmallScreen ? 12 : 16),
                     _buildEmailField(),
-                    SizedBox(height: isSmallScreen ? 16 : 20),
+                    SizedBox(height: isSmallScreen ? 12 : 16),
                     _buildCountryField(),
-                    SizedBox(height: isSmallScreen ? 16 : 20),
+                    SizedBox(height: isSmallScreen ? 12 : 16),
                     _buildPasswordField(),
                   ],
                 ),
               ),
-              SizedBox(height: isSmallScreen ? 24 : 40),
+              SizedBox(height: isSmallScreen ? 20 : 30),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : _handleSignUp,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF6585D3),
+                    foregroundColor: Colors.white,
+                  ),
                   child: _isLoading
                       ? const SizedBox(
                           height: 20,
                           width: 20,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Text("Sign up"),
+                      : const Text(
+                          "Sign up",
+                          style: TextStyle(fontWeight: FontWeight.w700),
+                        ),
                 ),
               ),
-              SizedBox(height: isSmallScreen ? 20 : 30),
+              SizedBox(height: isSmallScreen ? 16 : 24),
               const Center(
                 child: Text(
                   "Or sign up with",
                   style: TextStyle(color: Colors.grey),
                 ),
               ),
-              SizedBox(height: isSmallScreen ? 20 : 30),
+              SizedBox(height: isSmallScreen ? 16 : 20),
               _buildSocialButton(
                 iconPath: 'assets/google_logo.png',
                 label: "Continue with Google",
@@ -173,32 +193,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 foregroundColor: Colors.black,
                 isGoogle: true,
               ),
-              SizedBox(height: isSmallScreen ? 12 : 20),
-              _buildSocialButton(
-                iconPath: 'assets/facebook_logo.png',
-                label: "Continue with Facebook",
-                backgroundColor: const Color(0xFF1877F2),
-                foregroundColor: Colors.white,
-              ),
-              SizedBox(height: isSmallScreen ? 12 : 20),
-              _buildSocialButton(
-                iconPath: 'assets/apple_logo.png',
-                label: "Continue with Apple",
-                backgroundColor: Colors.black,
-                foregroundColor: Colors.white,
-              ),
-              SizedBox(height: isSmallScreen ? 24 : 40),
+              SizedBox(height: isSmallScreen ? 16 : 24),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const Text("Already have an account?"),
                   TextButton(
                     onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => const LoginScreen(),
-                        ),
-                      );
+                      Navigator.of(context).pushNamed(AppRoutes.login);
                     },
                     child: const Text(
                       "Sign in",
@@ -263,13 +265,61 @@ class _SignUpScreenState extends State<SignUpScreen> {
       children: [
         const Text("Country", style: TextStyle(fontWeight: FontWeight.w600)),
         const SizedBox(height: 8),
-        TextFormField(
-          controller: _countryController,
-          validator: validateCountry,
-          decoration: const InputDecoration(
-            hintText: "e.g., Nigeria, Kenya, Rwanda",
-            border: OutlineInputBorder(),
-          ),
+        Autocomplete<String>(
+          optionsBuilder: (TextEditingValue textEditingValue) {
+            if (textEditingValue.text.isEmpty) {
+              return _countries;
+            }
+            return _countries.where((String option) {
+              return option.toLowerCase().contains(textEditingValue.text.toLowerCase());
+            });
+          },
+          onSelected: (String selection) {
+            setState(() {
+              _selectedCountry = selection;
+            });
+          },
+          fieldViewBuilder: (context, controller, focusNode, onEditingComplete) {
+            return TextFormField(
+              controller: controller,
+              focusNode: focusNode,
+              onEditingComplete: onEditingComplete,
+              validator: (value) => _selectedCountry == null ? 'Please select a country' : null,
+              decoration: const InputDecoration(
+                hintText: "Select or type country",
+                border: OutlineInputBorder(),
+                suffixIcon: Icon(Icons.arrow_drop_down),
+              ),
+            );
+          },
+          optionsViewBuilder: (context, onSelected, options) {
+            return Align(
+              alignment: Alignment.topLeft,
+              child: Material(
+                color: Colors.white,
+                elevation: 4.0,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxHeight: 200),
+                  child: ListView.builder(
+                    padding: EdgeInsets.zero,
+                    shrinkWrap: true,
+                    itemCount: options.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      final String option = options.elementAt(index);
+                      return InkWell(
+                        onTap: () => onSelected(option),
+                        child: Container(
+                          color: Colors.white,
+                          padding: const EdgeInsets.all(16.0),
+                          child: Text(option),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+            );
+          },
         ),
       ],
     );
@@ -325,7 +375,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton.icon(
-        icon: Icon(iconData, size: isSmallScreen ? 20 : 24),
+        icon: Image.asset(
+          'assets/google_logo.png',
+          width: isSmallScreen ? 20 : 24,
+          height: isSmallScreen ? 20 : 24,
+        ),
         label: Text(label),
         style: ElevatedButton.styleFrom(
           backgroundColor: backgroundColor,
@@ -340,7 +394,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
             fontWeight: FontWeight.w600,
           ),
         ),
-        onPressed: () {},
+        onPressed: () async {
+          try {
+            await GoogleAuthService.signInWithGoogle();
+          } catch (e) {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Google sign-in failed: $e')),
+              );
+            }
+          }
+        },
       ),
     );
   }

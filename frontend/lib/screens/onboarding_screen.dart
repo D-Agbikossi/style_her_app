@@ -13,7 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 // Screen imports
-import 'package:frontend/screens/signup_screen.dart';
+import 'package:frontend/routes.dart';
 
 // Theme imports
 import 'package:frontend/main.dart';
@@ -166,9 +166,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
    * Skip onboarding and navigate to sign up screen
    */
   void _skipToSignUp() {
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (context) => const SignUpScreen()),
-    );
+    Navigator.of(context).pushReplacementNamed(AppRoutes.signup);
   }
 }
 
@@ -195,20 +193,12 @@ class _OnboardingPage extends StatelessWidget {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        // --- IMAGE PLACEHOLDER ---
-        // Replace this Container with your Image.asset
-        Container(
+        Image.asset(
+          'assets/style_her.png',
           width: 250,
           height: 250,
-          decoration: BoxDecoration(
-            color: Colors.grey[100],
-            shape: BoxShape.circle,
-          ),
-          child: Center(
-            child: Icon(Icons.image, size: 100, color: Colors.grey[300]),
-          ),
+          fit: BoxFit.contain,
         ),
-        // --- END PLACEHOLDER ---
         const SizedBox(height: 60),
         Text(
           title,
