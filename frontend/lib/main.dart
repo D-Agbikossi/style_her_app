@@ -82,10 +82,15 @@ class MyApp extends StatelessWidget {
       ),
     );
   }
-}
 
-/// --- AUTH WRAPPER (Handles login state) ---
 class AuthOrOnboarding extends StatelessWidget {
+=======
+/**
+ * Authentication decision widget
+ * Determines whether to show onboarding or main app based on user login status
+ */
+class AuthOrOnboarding extends StatefulWidget {
+>>>>>>> origin/main
   const AuthOrOnboarding({super.key});
 
   @override

@@ -97,7 +97,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
     final isSmallScreen = screenHeight < 700;
-    
+
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -140,10 +140,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Padding(
       padding: EdgeInsets.fromLTRB(
-        isSmallScreen ? 12 : 16, 
-        isSmallScreen ? 8 : 12, 
-        isSmallScreen ? 12 : 16, 
-        isSmallScreen ? 4 : 8
+        isSmallScreen ? 12 : 16,
+        isSmallScreen ? 8 : 12,
+        isSmallScreen ? 12 : 16,
+        isSmallScreen ? 4 : 8,
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -208,8 +208,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Padding(
       padding: EdgeInsets.symmetric(
-        horizontal: isSmallScreen ? 12 : 16, 
-        vertical: isSmallScreen ? 4 : 8
+        horizontal: isSmallScreen ? 12 : 16,
+        vertical: isSmallScreen ? 4 : 8,
       ),
       child: TextField(
         onChanged: (value) {
@@ -245,7 +245,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildSpecialOfferBanner() {
     final screenHeight = MediaQuery.of(context).size.height;
     final isSmallScreen = screenHeight < 700;
-    
+
     return Padding(
       padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
       child: Container(
@@ -420,7 +420,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     final screenHeight = MediaQuery.of(context).size.height;
     final isSmallScreen = screenHeight < 700;
-    
+
     return SizedBox(
       height: isSmallScreen ? 220 : 250,
       child: PageView.builder(
@@ -526,12 +526,12 @@ class _CourseCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
     final isSmallScreen = screenHeight < 700;
-    
+
     return Container(
       width: double.infinity,
       margin: EdgeInsets.symmetric(
-        horizontal: 5, 
-        vertical: isSmallScreen ? 8 : 10
+        horizontal: 5,
+        vertical: isSmallScreen ? 8 : 10,
       ),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -579,7 +579,6 @@ class _CourseCard extends StatelessWidget {
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
               children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -589,45 +588,40 @@ class _CourseCard extends StatelessWidget {
                       style: const TextStyle(
                         color: kPrimaryColor,
                         fontWeight: FontWeight.bold,
-                        fontSize: 10,
+                        fontSize: 12,
                       ),
                     ),
-                    const Icon(Icons.bookmark_border, color: kPrimaryColor, size: 18),
+                    const Icon(Icons.bookmark_border, color: kPrimaryColor),
                   ],
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 8),
                 Text(
                   title,
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 14,
+                    fontSize: 16,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 10),
                 Row(
                   children: [
-                    Flexible(
-                      child: Text(
-                        level,
-                        style: TextStyle(color: Colors.grey[700], fontSize: 12),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
+                    Text(level, style: TextStyle(color: Colors.grey[700])),
+                    const SizedBox(width: 8),
+                    Icon(Icons.star, color: Colors.amber, size: 16),
                     const SizedBox(width: 4),
-                    Icon(Icons.star, color: Colors.amber, size: 14),
-                    const SizedBox(width: 2),
                     Text(
                       "$rating",
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                      style: TextStyle(fontWeight: FontWeight.bold),
                     ),
-                    const SizedBox(width: 4),
+                    const SizedBox(width: 8),
                     Flexible(
                       child: Text(
                         "| $modules Modules",
-                        style: TextStyle(color: Colors.grey[700], fontSize: 12),
+                        style: TextStyle(color: Colors.grey[700]),
                         overflow: TextOverflow.ellipsis,
+                        softWrap: false,
                       ),
                     ),
                   ],
