@@ -25,6 +25,9 @@ import '../models/course.dart';
 // Theme imports
 import '../main.dart';
 
+const Color kPrimaryColor = Color(0xFF2C5BB1); // Main brand blue
+const Color kBackgroundColor = Color(0xFFF5F9FF); // App background color
+
 /**
  * Home Screen
  * 
@@ -64,7 +67,7 @@ class _HomeScreenState extends State<HomeScreen> {
    */
   String _searchQuery = "";
 
-/**
+  /**
    * Initialize screen state
    * Loads courses data after widget is built
    */
@@ -73,17 +76,20 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     // Load courses when the screen loads
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final courseProvider = Provider.of<CourseProvider>(context, listen: false);
+      final courseProvider = Provider.of<CourseProvider>(
+        context,
+        listen: false,
+      );
       courseProvider.fetchAllCourses();
       courseProvider.fetchPopularCourses();
     });
   }
 
-/**
+  /**
    * Build the home screen UI
    * Includes header, search, banner, categories, courses, and mentors
    */
-/**
+  /**
    * Build the course card UI
    * Shows thumbnail, title, category, rating, and module count
    */
@@ -125,16 +131,13 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-/**
+  /**
    * Build the header section with user greeting and notification icon
    */
   Widget _buildHeader() {
     final authProvider = Provider.of<AuthProvider>(context);
-    final fullName = authProvider.profile?.displayName ?? 'User';
-    final firstName = fullName.split(' ').first;
-    final screenHeight = MediaQuery.of(context).size.height;
-    final isSmallScreen = screenHeight < 700;
-    
+    final userName = authProvider.profile?.displayName ?? 'User';
+
     return Padding(
       padding: EdgeInsets.fromLTRB(
         isSmallScreen ? 12 : 16, 
@@ -197,14 +200,12 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-/**
+  /**
    * Build the search bar for course filtering
    */
   Widget _buildSearchBar() {
     final courseProvider = Provider.of<CourseProvider>(context);
-    final screenHeight = MediaQuery.of(context).size.height;
-    final isSmallScreen = screenHeight < 700;
-    
+
     return Padding(
       padding: EdgeInsets.symmetric(
         horizontal: isSmallScreen ? 12 : 16, 
@@ -238,7 +239,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-/**
+  /**
    * Build the special offer banner with discount information
    */
   Widget _buildSpecialOfferBanner() {
@@ -322,7 +323,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-/**
+  /**
    * Build a section header with title and "SEE ALL" button
    * 
    * @param title The section title
@@ -363,7 +364,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-/**
+  /**
    * Build category filter chips for course filtering
    */
   Widget _buildCategoryChips() {
@@ -401,22 +402,20 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-/**
+  /**
    * Build the popular courses horizontal list
    * Shows loading state, empty state, or course cards
    */
   Widget _buildPopularCoursesList() {
     final courseProvider = Provider.of<CourseProvider>(context);
     final courses = courseProvider.popularCourses;
-    
+
     if (courseProvider.isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
-    
+
     if (courses.isEmpty) {
-      return const Center(
-        child: Text('No courses available'),
-      );
+      return const Center(child: Text('No courses available'));
     }
 
     final screenHeight = MediaQuery.of(context).size.height;
@@ -446,7 +445,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-/**
+  /**
    * Build the top mentors horizontal list
    * Shows mentor avatars and names
    */
@@ -492,27 +491,27 @@ class _CourseCard extends StatelessWidget {
    * Course title
    */
   final String title, category, level;
-  
+
   /**
    * Course rating
    */
   final double rating;
-  
+
   /**
    * Number of modules in the course
    */
   final int modules;
-  
+
   /**
    * Course price (null if free)
    */
   final double? price;
-  
+
   /**
    * Course thumbnail image URL
    */
   final String? thumbnailUrl;
-  
+
   const _CourseCard({
     required this.title,
     required this.category,
@@ -565,7 +564,11 @@ class _CourseCard extends StatelessWidget {
             ),
             child: thumbnailUrl == null
                 ? Center(
-                    child: Icon(Icons.videocam, color: Colors.white30, size: 50),
+                    child: Icon(
+                      Icons.videocam,
+                      color: Colors.white30,
+                      size: 50,
+                    ),
                   )
                 : null,
           ),

@@ -27,6 +27,9 @@ import '../main.dart';
 // Utils imports
 import '../utils/validators.dart';
 
+const Color kPrimaryColor = Color(0xFF2C5BB1); // Main brand blue
+const Color kBackgroundColor = Color(0xFFF5F9FF); // App background color
+
 /**
  * LoginScreen - Stateful widget for user authentication
  * Manages login form state, validation, and user interactions
@@ -106,7 +109,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
     final isSmallScreen = screenHeight < 700;
-    
+
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -290,8 +293,11 @@ class _LoginScreenState extends State<LoginScreen> {
   }) {
     final screenHeight = MediaQuery.of(context).size.height;
     final isSmallScreen = screenHeight < 700;
-    
-    IconData iconData = Icons.g_mobiledata;
+
+    IconData iconData = Icons.error;
+    if (label.contains("Google")) iconData = Icons.g_mobiledata;
+    if (label.contains("Facebook")) iconData = Icons.facebook;
+    if (label.contains("Apple")) iconData = Icons.apple;
 
     return SizedBox(
       width: double.infinity,
@@ -311,8 +317,8 @@ class _LoginScreenState extends State<LoginScreen> {
               : BorderSide.none,
           padding: EdgeInsets.symmetric(vertical: isSmallScreen ? 12 : 16),
           textStyle: TextStyle(
-            fontSize: isSmallScreen ? 14 : 16, 
-            fontWeight: FontWeight.w600
+            fontSize: isSmallScreen ? 14 : 16,
+            fontWeight: FontWeight.w600,
           ),
         ),
         onPressed: () async {
@@ -330,5 +336,3 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
-
-
