@@ -81,7 +81,7 @@ class _AuthOrOnboardingState extends State<AuthOrOnboarding> {
   @override
   void initState() {
     super.initState();
-    // Uncomment the line below to force logout on app restart (for testing)
+    // Force logout on app restart (for testing)
     FirebaseAuth.instance.signOut();
   }
 
