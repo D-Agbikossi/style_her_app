@@ -17,22 +17,6 @@ import 'theme.dart';
 import 'screens/email_verification_screen.dart';
 import 'screens/home_screen.dart';
 
-class StyleHerAppState extends StatefulWidget {
-  const StyleHerAppState({super.key});
-
-  @override
-  State<StyleHerAppState> createState() => StyleHerAppStateState();
-}
-
-class StyleHerAppStateState extends State<StyleHerAppState> {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.theme(),
-    );
-  }
-}
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
@@ -41,12 +25,10 @@ Future<void> main() async {
   runApp(const MyApp());
 }
 
+const Color kPrimaryColor = Color(0xFF6A88E3);
+const Color kPrimaryText = Color(0xFF4A6FDB);
+const Color kScaffoldBackground = Colors.white;
 
-const Color kPrimaryColor = Color(0xFF6A88E3); // 
-const Color kPrimaryText = Color(
-  0xFF4A6FDB,
-);
-const Color kScaffoldBackground = Colors.white; // 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -86,7 +68,7 @@ class MyApp extends StatelessWidget {
       ),
     );
   }
-} // end of MyApp
+}
 
 class AuthOrOnboarding extends StatefulWidget {
   const AuthOrOnboarding({super.key});

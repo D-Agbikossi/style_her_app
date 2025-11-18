@@ -14,7 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 // Screen imports
-import 'package:frontend/routes.dart';
+import 'package:frontend/screens/login_screen.dart';
 
 // Provider imports
 import 'package:frontend/providers/auth_provider.dart';
@@ -27,6 +27,9 @@ import '../main.dart';
 
 // Utils imports
 import '../utils/validators.dart';
+
+const Color kPrimaryColor = Color(0xFF2C5BB1); // Main brand blue
+const Color kBackgroundColor = Color(0xFFF5F9FF); // App background color
 
 /**
  * SignUpScreen - Stateful widget for user registration
@@ -120,7 +123,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
     final isSmallScreen = screenHeight < 700;
-    
+
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -364,6 +367,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
     final screenHeight = MediaQuery.of(context).size.height;
     final isSmallScreen = screenHeight < 700;
 
+    IconData iconData = Icons.error;
+    if (label.contains("Google")) iconData = Icons.g_mobiledata;
+    if (label.contains("Facebook")) iconData = Icons.facebook;
+    if (label.contains("Apple")) iconData = Icons.apple;
+
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton.icon(
@@ -382,8 +390,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
               : BorderSide.none,
           padding: EdgeInsets.symmetric(vertical: isSmallScreen ? 12 : 16),
           textStyle: TextStyle(
-            fontSize: isSmallScreen ? 14 : 16, 
-            fontWeight: FontWeight.w600
+            fontSize: isSmallScreen ? 14 : 16,
+            fontWeight: FontWeight.w600,
           ),
         ),
         onPressed: () async {

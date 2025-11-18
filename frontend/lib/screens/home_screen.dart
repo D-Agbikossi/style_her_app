@@ -25,6 +25,9 @@ import '../models/course.dart';
 // Theme imports
 import '../main.dart';
 
+const Color kPrimaryColor = Color(0xFF2C5BB1); // Main brand blue
+const Color kBackgroundColor = Color(0xFFF5F9FF); // App background color
+
 /**
  * Home Screen
  * 
@@ -64,7 +67,7 @@ class _HomeScreenState extends State<HomeScreen> {
    */
   String _searchQuery = "";
 
-/**
+  /**
    * Initialize screen state
    * Loads courses data after widget is built
    */
@@ -73,17 +76,20 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     // Load courses when the screen loads
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final courseProvider = Provider.of<CourseProvider>(context, listen: false);
+      final courseProvider = Provider.of<CourseProvider>(
+        context,
+        listen: false,
+      );
       courseProvider.fetchAllCourses();
       courseProvider.fetchPopularCourses();
     });
   }
 
-/**
+  /**
    * Build the home screen UI
    * Includes header, search, banner, categories, courses, and mentors
    */
-/**
+  /**
    * Build the course card UI
    * Shows thumbnail, title, category, rating, and module count
    */
@@ -91,7 +97,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
     final isSmallScreen = screenHeight < 700;
-    
+
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -125,22 +131,19 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-/**
+  /**
    * Build the header section with user greeting and notification icon
    */
   Widget _buildHeader() {
     final authProvider = Provider.of<AuthProvider>(context);
-    final fullName = authProvider.profile?.displayName ?? 'User';
-    final firstName = fullName.split(' ').first;
-    final screenHeight = MediaQuery.of(context).size.height;
-    final isSmallScreen = screenHeight < 700;
-    
+    final userName = authProvider.profile?.displayName ?? 'User';
+
     return Padding(
       padding: EdgeInsets.fromLTRB(
-        isSmallScreen ? 12 : 16, 
-        isSmallScreen ? 8 : 12, 
-        isSmallScreen ? 12 : 16, 
-        isSmallScreen ? 4 : 8
+        isSmallScreen ? 12 : 16,
+        isSmallScreen ? 8 : 12,
+        isSmallScreen ? 12 : 16,
+        isSmallScreen ? 4 : 8,
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -197,18 +200,16 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-/**
+  /**
    * Build the search bar for course filtering
    */
   Widget _buildSearchBar() {
     final courseProvider = Provider.of<CourseProvider>(context);
-    final screenHeight = MediaQuery.of(context).size.height;
-    final isSmallScreen = screenHeight < 700;
-    
+
     return Padding(
       padding: EdgeInsets.symmetric(
-        horizontal: isSmallScreen ? 12 : 16, 
-        vertical: isSmallScreen ? 4 : 8
+        horizontal: isSmallScreen ? 12 : 16,
+        vertical: isSmallScreen ? 4 : 8,
       ),
       child: TextField(
         onChanged: (value) {
@@ -238,13 +239,13 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-/**
+  /**
    * Build the special offer banner with discount information
    */
   Widget _buildSpecialOfferBanner() {
     final screenHeight = MediaQuery.of(context).size.height;
     final isSmallScreen = screenHeight < 700;
-    
+
     return Padding(
       padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
       child: Container(
@@ -322,7 +323,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-/**
+  /**
    * Build a section header with title and "SEE ALL" button
    * 
    * @param title The section title
@@ -363,7 +364,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-/**
+  /**
    * Build category filter chips for course filtering
    */
   Widget _buildCategoryChips() {
@@ -401,27 +402,25 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-/**
+  /**
    * Build the popular courses horizontal list
    * Shows loading state, empty state, or course cards
    */
   Widget _buildPopularCoursesList() {
     final courseProvider = Provider.of<CourseProvider>(context);
     final courses = courseProvider.popularCourses;
-    
+
     if (courseProvider.isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
-    
+
     if (courses.isEmpty) {
-      return const Center(
-        child: Text('No courses available'),
-      );
+      return const Center(child: Text('No courses available'));
     }
 
     final screenHeight = MediaQuery.of(context).size.height;
     final isSmallScreen = screenHeight < 700;
-    
+
     return SizedBox(
       height: isSmallScreen ? 220 : 250,
       child: PageView.builder(
@@ -446,7 +445,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-/**
+  /**
    * Build the top mentors horizontal list
    * Shows mentor avatars and names
    */
@@ -492,27 +491,27 @@ class _CourseCard extends StatelessWidget {
    * Course title
    */
   final String title, category, level;
-  
+
   /**
    * Course rating
    */
   final double rating;
-  
+
   /**
    * Number of modules in the course
    */
   final int modules;
-  
+
   /**
    * Course price (null if free)
    */
   final double? price;
-  
+
   /**
    * Course thumbnail image URL
    */
   final String? thumbnailUrl;
-  
+
   const _CourseCard({
     required this.title,
     required this.category,
@@ -527,12 +526,12 @@ class _CourseCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
     final isSmallScreen = screenHeight < 700;
-    
+
     return Container(
       width: double.infinity,
       margin: EdgeInsets.symmetric(
-        horizontal: 5, 
-        vertical: isSmallScreen ? 8 : 10
+        horizontal: 5,
+        vertical: isSmallScreen ? 8 : 10,
       ),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -565,7 +564,11 @@ class _CourseCard extends StatelessWidget {
             ),
             child: thumbnailUrl == null
                 ? Center(
-                    child: Icon(Icons.videocam, color: Colors.white30, size: 50),
+                    child: Icon(
+                      Icons.videocam,
+                      color: Colors.white30,
+                      size: 50,
+                    ),
                   )
                 : null,
           ),
@@ -576,7 +579,6 @@ class _CourseCard extends StatelessWidget {
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
               children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -586,45 +588,40 @@ class _CourseCard extends StatelessWidget {
                       style: const TextStyle(
                         color: kPrimaryColor,
                         fontWeight: FontWeight.bold,
-                        fontSize: 10,
+                        fontSize: 12,
                       ),
                     ),
-                    const Icon(Icons.bookmark_border, color: kPrimaryColor, size: 18),
+                    const Icon(Icons.bookmark_border, color: kPrimaryColor),
                   ],
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 8),
                 Text(
                   title,
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 14,
+                    fontSize: 16,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 10),
                 Row(
                   children: [
-                    Flexible(
-                      child: Text(
-                        level,
-                        style: TextStyle(color: Colors.grey[700], fontSize: 12),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
+                    Text(level, style: TextStyle(color: Colors.grey[700])),
+                    const SizedBox(width: 8),
+                    Icon(Icons.star, color: Colors.amber, size: 16),
                     const SizedBox(width: 4),
-                    Icon(Icons.star, color: Colors.amber, size: 14),
-                    const SizedBox(width: 2),
                     Text(
                       "$rating",
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                      style: TextStyle(fontWeight: FontWeight.bold),
                     ),
-                    const SizedBox(width: 4),
+                    const SizedBox(width: 8),
                     Flexible(
                       child: Text(
                         "| $modules Modules",
-                        style: TextStyle(color: Colors.grey[700], fontSize: 12),
+                        style: TextStyle(color: Colors.grey[700]),
                         overflow: TextOverflow.ellipsis,
+                        softWrap: false,
                       ),
                     ),
                   ],
