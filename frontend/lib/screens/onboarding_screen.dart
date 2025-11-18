@@ -18,6 +18,8 @@ import 'package:frontend/routes.dart';
 // Theme imports
 import 'package:frontend/main.dart';
 
+const Color kPrimaryColor = Color(0xFF2C5BB1);
+
 /**
  * Onboarding Screen Widget
  * 
@@ -40,7 +42,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
    * Controller for the PageView
    */
   final PageController _controller = PageController();
-  
+
   /**
    * Current page index in the onboarding flow
    */
@@ -64,11 +66,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     },
   ];
 
-/**
+  /**
    * Build the onboarding screen UI
    * Includes skip button, PageView, indicator, and navigation button
    */
-/**
+  /**
    * Build the onboarding page UI
    * Shows image placeholder, title, and subtitle
    */
@@ -147,7 +149,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-/**
+  /**
    * Navigate to next page or sign up screen
    * Handles final page transition to sign up
    */
@@ -180,7 +182,7 @@ class _OnboardingPage extends StatelessWidget {
    * Page title text
    */
   final String title;
-  
+
   /**
    * Page subtitle text
    */
