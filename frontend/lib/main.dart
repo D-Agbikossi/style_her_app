@@ -1,53 +1,34 @@
-/**
- * StyleHer - Beauty Learning Platform
- *
- * Main entry point for the StyleHer Flutter app.
- * Features:
- * - User authentication
- * - Course browsing
- * - Mentorship connections
- * - Notifications and job opportunities
- */
-
+// Flutter framework imports
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
+// Firebase imports
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
-
-// Local imports
 import 'firebase_options.dart';
 import 'providers/auth_provider.dart';
 import 'providers/course_provider.dart';
 import 'routes.dart';
 import 'screens/onboarding_screen.dart';
-import 'screens/notifications_screen.dart';
-import 'screens/popular_courses_screen.dart';
-import 'screens/top_mentors_screen.dart';
-import 'screens/mentor_info_screen.dart';
-import 'screens/course_detail_screen.dart';
-import 'screens/courses_completed_screen.dart';
-import 'screens/course_certification_screen.dart';
+import 'theme.dart';
+import 'screens/email_verification_screen.dart';
+import 'screens/home_screen.dart';
 
-/// Convert a hex color code to [Color]
-Color hexToColor(String hexCode) {
-  String colorString = 'FF${hexCode.substring(1)}';
-  return Color(int.parse(colorString, radix: 16));
-}
-
-// --- Global Colors ---
-final Color kBackgroundColor = hexToColor('#F5F9FF');
-final Color kPrimaryBlue = hexToColor('#2C5BB1');
-
-/// --- APP ENTRY POINT ---
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  // Run the main application
   runApp(const MyApp());
 }
 
-/// --- ROOT WIDGET ---
+const Color kPrimaryColor = Color(0xFF6A88E3);
+const Color kPrimaryText = Color(0xFF4A6FDB);
+const Color kScaffoldBackground = Colors.white;
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -60,53 +41,73 @@ class MyApp extends StatelessWidget {
       ),
     );
 
+    // Set up providers for state management
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
-        ChangeNotifierProvider(create: (_) => CourseProvider()),
+        ChangeNotifierProvider(
+          create: (_) => AuthProvider(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => CourseProvider(),
+        ),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'StyleHer',
         theme: ThemeData(
-          primaryColor: kPrimaryBlue,
-          scaffoldBackgroundColor: kBackgroundColor,
+          primarySwatch: Colors.blue,
+          scaffoldBackgroundColor: kScaffoldBackground,
           appBarTheme: const AppBarTheme(
-            backgroundColor: Colors.white,
             elevation: 0,
-            iconTheme: IconThemeData(color: Colors.black),
+            backgroundColor: Colors.transparent,
+            systemOverlayStyle: SystemUiOverlayStyle.dark,
           ),
-          fontFamily: 'Roboto',
         ),
-        home: const AuthOrOnboarding(),
+        onGenerateRoute: AppRoutes.generateRoute,
+        home: const AuthOrOnboarding(), // Initial screen based on auth state
       ),
     );
   }
+}
 
-class AuthOrOnboarding extends StatelessWidget {
-/**
- * Authentication decision widget
- * Determines whether to show onboarding or main app based on user login status
- */
 class AuthOrOnboarding extends StatefulWidget {
   const AuthOrOnboarding({super.key});
 
   @override
+  State<AuthOrOnboarding> createState() => _AuthOrOnboardingState();
+}
+
+class _AuthOrOnboardingState extends State<AuthOrOnboarding> {
+  @override
+  void initState() {
+    super.initState();
+    // Force logout on app restart (for testing)
+    FirebaseAuth.instance.signOut();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    // Listen to authentication state changes
     return StreamBuilder<User?>(
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, snapshot) {
+        // Show loading while checking auth state
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
           );
         }
 
-        // If user is logged in, go to main navigation
+        // User is logged in
         if (snapshot.hasData) {
-          return const MainNavigationScreen();
+          final user = snapshot.data!;
+          // Check if email is verified
+          if (!user.emailVerified) {
+            return const EmailVerificationScreen();
+          }
+          return const AuthWrapper();
         } else {
-          // Otherwise show onboarding
+          // User is not logged in - show onboarding
           return const OnboardingScreen();
         }
       },
@@ -114,61 +115,11 @@ class AuthOrOnboarding extends StatefulWidget {
   }
 }
 
-/// --- MAIN NAVIGATION SCREEN ---
-class MainNavigationScreen extends StatefulWidget {
-  const MainNavigationScreen({super.key});
-
-  @override
-  State<AuthOrOnboarding> createState() => _AuthOrOnboardingState();
-}
-
-class _MainNavigationScreenState extends State<MainNavigationScreen> {
-  int _selectedIndex = 0;
-
-  final List<Widget> _screens = [
-    const PopularCoursesScreen(),
-    const TopMentorsScreen(),
-    const NotificationsScreen(),
-    const Center(child: Text('Search Screen Placeholder')),
-    const Center(child: Text('Profile Screen Placeholder')),
-  ];
-
-  void _onItemTapped(int index) {
-    setState(() => _selectedIndex = index);
-  }
+class AuthWrapper extends StatelessWidget {
+  const AuthWrapper({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: _screens[_selectedIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.school_outlined),
-            label: 'Courses',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.people_outline),
-            label: 'Mentors',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.notifications_outlined),
-            label: 'Alerts',
-          ),
-          BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Search'),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            label: 'Profile',
-          ),
-        ],
-        currentIndex: _selectedIndex,
-        selectedItemColor: kPrimaryBlue,
-        unselectedItemColor: Colors.grey,
-        showUnselectedLabels: true,
-        type: BottomNavigationBarType.fixed,
-        onTap: _onItemTapped,
-      ),
-    );
     return const HomeScreen();
   }
 }
