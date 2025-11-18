@@ -100,7 +100,7 @@ class _AuthOrOnboardingState extends State<AuthOrOnboarding> {
   void initState() {
     super.initState();
     // Uncomment the line below to force logout on app restart (for testing)
-    // FirebaseAuth.instance.signOut();
+    FirebaseAuth.instance.signOut();
   }
 
   @override
@@ -138,11 +138,6 @@ class AuthWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
-    return Scaffold(
-      appBar: AppBar(title: const Text('StyleHer')),
-      body: const Center(child: Text('Welcome back!')),
-    );
     return const HomeScreen();
   }
 }

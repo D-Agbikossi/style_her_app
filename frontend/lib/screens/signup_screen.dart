@@ -388,7 +388,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
         ),
         onPressed: () async {
           try {
-            await GoogleAuthService.signInWithGoogle();
+            final userCredential = await GoogleAuthService.signInWithGoogle();
+            if (userCredential != null && mounted) {
+              Navigator.of(context).pushReplacementNamed(AppRoutes.home);
+            }
           } catch (e) {
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
