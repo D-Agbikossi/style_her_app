@@ -84,13 +84,11 @@ class MyApp extends StatelessWidget {
   }
 
 class AuthOrOnboarding extends StatelessWidget {
-=======
 /**
  * Authentication decision widget
  * Determines whether to show onboarding or main app based on user login status
  */
 class AuthOrOnboarding extends StatefulWidget {
->>>>>>> origin/main
   const AuthOrOnboarding({super.key});
 
   @override
