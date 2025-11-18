@@ -5,7 +5,7 @@ import 'my_courses_screen.dart';
 import 'inbox.dart';
 import 'marketplace.dart';
 import 'edit_profile.dart';
-import '../main.dart';
+import '../main.dart' as app_main;
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
@@ -66,7 +66,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
         type: BottomNavigationBarType.fixed,
-        selectedItemColor: kPrimaryColor,
+        selectedItemColor: app_main.kPrimaryColor,
         unselectedItemColor: Colors.grey,
         selectedFontSize: 12,
         unselectedFontSize: 12,

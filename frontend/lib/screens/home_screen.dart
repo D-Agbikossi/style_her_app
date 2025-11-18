@@ -137,6 +137,10 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildHeader() {
     final authProvider = Provider.of<AuthProvider>(context);
     final userName = authProvider.profile?.displayName ?? 'User';
+    final firstName = userName.split(' ').first;
+
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isSmallScreen = screenHeight < 700;
 
     return Padding(
       padding: EdgeInsets.fromLTRB(
@@ -205,6 +209,9 @@ class _HomeScreenState extends State<HomeScreen> {
    */
   Widget _buildSearchBar() {
     final courseProvider = Provider.of<CourseProvider>(context);
+
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isSmallScreen = screenHeight < 700;
 
     return Padding(
       padding: EdgeInsets.symmetric(
