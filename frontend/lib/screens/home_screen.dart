@@ -13,17 +13,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
+import 'dart:async';
 
 // Provider imports
 import '../providers/auth_provider.dart';
 import '../providers/course_provider.dart';
 import '../routes.dart';
-
-// Model imports
-import '../models/course.dart';
-
-// Theme imports
-import '../main.dart';
 
 const Color kPrimaryColor = Color(0xFF2C5BB1); // Main brand blue
 const Color kBackgroundColor = Color(0xFFF5F9FF); // App background color
@@ -47,10 +42,18 @@ class HomeScreen extends StatefulWidget {
  * and course data loading
  */
 class _HomeScreenState extends State<HomeScreen> {
+  // Constants for the banner
+  static const int _bannerCount = 3;
+  static const Duration _scrollDuration = Duration(seconds: 4);
+  static const Duration _scrollAnimationDuration = Duration(milliseconds: 700);
+
   /**
    * Controller for the special offer banner page view
    */
   final PageController _bannerController = PageController();
+
+  // Timer for automatic scrolling
+  late Timer _timer;
 
   /**
    * Currently selected course category for filtering
@@ -69,11 +72,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
   /**
    * Initialize screen state
-   * Loads courses data after widget is built
+   * Loads courses data after widget is built and starts auto-scroll timer
    */
   @override
   void initState() {
     super.initState();
+    _startTimer();
+
     // Load courses when the screen loads
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final courseProvider = Provider.of<CourseProvider>(
@@ -83,6 +88,47 @@ class _HomeScreenState extends State<HomeScreen> {
       courseProvider.fetchAllCourses();
       courseProvider.fetchPopularCourses();
     });
+  }
+
+  /**
+   * Dispose of the timer to prevent memory leaks
+   */
+  @override
+  void dispose() {
+    _timer.cancel(); // Stop the timer
+    _bannerController.dispose(); // Dispose the controller
+    super.dispose();
+  }
+
+  /**
+   * Logic to start the periodic auto-scroll timer
+   */
+  void _startTimer() {
+    _timer = Timer.periodic(_scrollDuration, (Timer timer) {
+      if (!_bannerController.hasClients) return;
+
+      int nextPage = _bannerController.page!.round() + 1;
+
+      if (nextPage >= _bannerCount) {
+        // Go back to the first page (index 0)
+        nextPage = 0;
+      }
+
+      _bannerController.animateToPage(
+        nextPage,
+        duration: _scrollAnimationDuration,
+        curve: Curves.easeIn,
+      );
+    });
+  }
+
+  /**
+   * Logic to stop the timer when the user manually interacts with the banner
+   */
+  void _stopTimer() {
+    if (_timer.isActive) {
+      _timer.cancel();
+    }
   }
 
   /**
@@ -235,68 +281,80 @@ class _HomeScreenState extends State<HomeScreen> {
   /**
    * Build the special offer banner with discount information
    */
+  /**
+   * Build the special offer banner with discount information
+   */
   Widget _buildPromoBanner() {
     return Column(
       children: [
-        SizedBox(
-          height: 160,
-          child: PageView.builder(
-            controller: _bannerController,
-            itemCount: 3, // 3 banners
-            itemBuilder: (context, index) {
-              return Container(
-                margin: const EdgeInsets.symmetric(horizontal: 24),
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF4A6FDB),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            "25% OFF",
-                            style: Theme.of(context).textTheme.titleLarge
-                                ?.copyWith(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                          ),
-                          Text(
-                            "Today's Special",
-                            style: Theme.of(context).textTheme.headlineSmall
-                                ?.copyWith(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            "Get a Discount for Every Course\nOrder only Valid for Today.!",
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(
-                                  color: Colors.white.withOpacity(0.9),
-                                ),
-                          ),
-                        ],
+        GestureDetector(
+          onPanDown: (_) => _stopTimer(),
+          onPanCancel: () => _startTimer(),
+          onPanEnd: (_) => _startTimer(),
+
+          child: SizedBox(
+            height: 160,
+            child: PageView.builder(
+              controller: _bannerController,
+              itemCount: _bannerCount,
+              onPageChanged: (index) {
+                _stopTimer();
+                _startTimer();
+              },
+              itemBuilder: (context, index) {
+                return Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 24),
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF4A6FDB),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              "25% OFF",
+                              style: Theme.of(context).textTheme.titleLarge
+                                  ?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                            ),
+                            Text(
+                              "Today's Special",
+                              style: Theme.of(context).textTheme.headlineSmall
+                                  ?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              "Get a Discount for Every Course\nOrder only Valid for Today.!",
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(
+                                    color: Colors.white.withOpacity(0.9),
+                                  ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    // TODO: Add banner image
-                    // Image.asset('assets/images/banner_image.png', width: 100),
-                  ],
-                ),
-              );
-            },
+                      // Image.asset('assets/images/banner_image.png', width: 100),
+                    ],
+                  ),
+                );
+              },
+            ),
           ),
         ),
         const SizedBox(height: 16),
         SmoothPageIndicator(
           controller: _bannerController,
-          count: 3,
+          count: _bannerCount,
           effect: WormEffect(
             dotColor: Colors.grey,
             activeDotColor: const Color(0xFF4A6FDB),
