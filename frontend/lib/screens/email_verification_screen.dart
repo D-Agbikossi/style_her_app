@@ -4,9 +4,6 @@ import '../providers/auth_provider.dart';
 import '../main.dart';
 import 'package:frontend/routes.dart'; // <-- ADD THIS IMPORT
 
-const Color kPrimaryColor = Color(0xFF2C5BB1);
-const Color kPrimaryText = Color(0xFF333333);
-
 class EmailVerificationScreen extends StatelessWidget {
   const EmailVerificationScreen({super.key});
 

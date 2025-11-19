@@ -112,7 +112,7 @@ class _HomeScreenState extends State<HomeScreen> {
               SizedBox(height: isSmallScreen ? 2 : 4),
               _buildSearchBar(),
               SizedBox(height: isSmallScreen ? 2 : 4),
-              _buildSpecialOfferBanner(),
+              _buildPromoBanner(),
               SizedBox(height: isSmallScreen ? 2 : 4),
               _buildSectionHeader("Popular Courses"),
               SizedBox(height: isSmallScreen ? 1 : 2),
@@ -177,20 +177,6 @@ class _HomeScreenState extends State<HomeScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               IconButton(
-                icon: const Icon(Icons.menu_book_outlined, size: 22),
-                color: Colors.grey[700],
-                onPressed: () {
-                  Navigator.of(context).pushNamed(AppRoutes.myCourses);
-                },
-              ),
-              IconButton(
-                icon: const Icon(Icons.logout, size: 20),
-                color: Colors.grey[700],
-                onPressed: () async {
-                  await authProvider.signOut();
-                },
-              ),
-              IconButton(
                 icon: const Icon(Icons.notifications_none_outlined, size: 24),
                 color: Colors.grey[700],
                 onPressed: () {
@@ -249,84 +235,76 @@ class _HomeScreenState extends State<HomeScreen> {
   /**
    * Build the special offer banner with discount information
    */
-  Widget _buildSpecialOfferBanner() {
-    final screenHeight = MediaQuery.of(context).size.height;
-    final isSmallScreen = screenHeight < 700;
-
-    return Padding(
-      padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
-      child: Container(
-        height: isSmallScreen ? 140 : 160,
-        decoration: BoxDecoration(
-          color: kPrimaryColor,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Stack(
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  flex: 3,
-                  child: Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          "25% OFF",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
+  Widget _buildPromoBanner() {
+    return Column(
+      children: [
+        SizedBox(
+          height: 160,
+          child: PageView.builder(
+            controller: _bannerController,
+            itemCount: 3, // 3 banners
+            itemBuilder: (context, index) {
+              return Container(
+                margin: const EdgeInsets.symmetric(horizontal: 24),
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF4A6FDB),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            "25% OFF",
+                            style: Theme.of(context).textTheme.titleLarge
+                                ?.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
                           ),
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          "Today's Special",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
+                          Text(
+                            "Today's Special",
+                            style: Theme.of(context).textTheme.headlineSmall
+                                ?.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
                           ),
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          "Get a Discount for Every Course\nOrder only Valid for Today.!",
-                          style: TextStyle(color: Colors.white, fontSize: 10),
-                        ),
-                      ],
+                          const SizedBox(height: 8),
+                          Text(
+                            "Get a Discount for Every Course\nOrder only Valid for Today.!",
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(
+                                  color: Colors.white.withOpacity(0.9),
+                                ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
+                    // TODO: Add banner image
+                    // Image.asset('assets/images/banner_image.png', width: 100),
+                  ],
                 ),
-                Expanded(
-                  flex: 2,
-                  child: Container(
-                    alignment: Alignment.center,
-                    child: Icon(Icons.brush, size: 80, color: Colors.white24),
-                  ),
-                ),
-              ],
-            ),
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: SmoothPageIndicator(
-                  controller: _bannerController,
-                  count: 4,
-                  effect: const ScrollingDotsEffect(
-                    dotColor: Colors.white38,
-                    activeDotColor: Colors.white,
-                    dotHeight: 8,
-                    dotWidth: 8,
-                  ),
-                ),
-              ),
-            ),
-          ],
+              );
+            },
+          ),
         ),
-      ),
+        const SizedBox(height: 16),
+        SmoothPageIndicator(
+          controller: _bannerController,
+          count: 3,
+          effect: WormEffect(
+            dotColor: Colors.grey,
+            activeDotColor: const Color(0xFF4A6FDB),
+            dotHeight: 8,
+            dotWidth: 8,
+          ),
+        ),
+      ],
     );
   }
 
