@@ -11,6 +11,10 @@ import 'screens/my_courses_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/signup_screen.dart';
 import 'screens/top_mentors_screen.dart';
+import 'screens/mentor_info_screen.dart';
+import 'screens/course_detail_screen.dart';
+// 🌟 IMPORT THE CERTIFICATE SCREEN 🌟
+import 'screens/course_certification_screen.dart';
 
 class AppRoutes {
   static const String root = '/';
@@ -25,11 +29,17 @@ class AppRoutes {
   static const String popularCourses = '/popular-courses';
   static const String topMentors = '/top-mentors';
   static const String notifications = '/notifications';
+  static const String mentorProfile = '/mentor-profile';
+  static const String courseDetail = '/course-detail';
+  // 🌟 FIX: ADD MISSING CERTIFICATE ROUTE CONSTANT 🌟
+  static const String certificate = '/certificate';
   static const String inbox = '/inbox';
   static const String marketplace = '/marketplace';
   static const String profile = '/profile';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
+    final args = settings.arguments;
+
     switch (settings.name) {
       case root:
         return _buildRoute(settings, const OnboardingScreen());
@@ -55,6 +65,40 @@ class AppRoutes {
         return _buildRoute(settings, const TopMentorsScreen());
       case notifications:
         return _buildRoute(settings, const NotificationsScreen());
+
+      case mentorProfile:
+        if (args is String) {
+          return _buildRoute(settings, MentorProfileScreen(mentorId: args));
+        }
+        return _buildRoute(
+          settings,
+          const Scaffold(body: Center(child: Text('Mentor ID missing'))),
+        );
+
+      case courseDetail:
+        if (args is String) {
+          return _buildRoute(settings, CourseDetailsScreen(courseId: args));
+        }
+        return _buildRoute(
+          settings,
+          const Scaffold(body: Center(child: Text('Course ID missing'))),
+        );
+
+      // 🌟 FIX: ADD CERTIFICATE ROUTE HANDLER 🌟
+      case certificate:
+        if (args is String) {
+          // Expecting Course ID
+          // NOTE: We hardcode 'Alex' for recipientName since we don't have user data here.
+          return _buildRoute(
+            settings,
+            CertificateScreen(courseId: args, recipientName: 'Alex'),
+          );
+        }
+        return _buildRoute(
+          settings,
+          const Scaffold(body: Center(child: Text('Certificate ID missing'))),
+        );
+
       default:
         return MaterialPageRoute(
           settings: settings,

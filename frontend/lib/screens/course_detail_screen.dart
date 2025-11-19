@@ -1,26 +1,41 @@
 import 'package:flutter/material.dart';
 
-// --- MAIN APPLICATION WIDGET ---
-class CourseDetailsApp extends StatelessWidget {
-  const CourseDetailsApp({super.key});
+// --- MOCK FUNCTION (FIXED) ---
+void _playVideo(BuildContext context, String videoUrl) {
+  // Get the height of the fixed bottom navigation bar (approx 82 units)
+  final double bottomPadding = MediaQuery.of(context).padding.bottom + 66;
 
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Course Details',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        appBarTheme: const AppBarTheme(color: Colors.transparent, elevation: 0),
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text('Simulating playing video: $videoUrl'),
+      duration: const Duration(seconds: 3),
+      // Use floating behavior so we can control its position
+      behavior: SnackBarBehavior.floating,
+      // Place the snackbar near the center of the screen, away from the bottom bar
+      margin: EdgeInsets.only(
+        bottom: MediaQuery.of(context).size.height - 350, // Pushes it far up
+        left: 20,
+        right: 20,
       ),
-      home: const CourseDetailsScreen(),
-    );
-  }
+      // ❌ REMOVED: alignment: Alignment.topCenter, <--- THIS WAS THE ERROR ❌
+    ),
+  );
 }
 
 // --- 1. COURSE DETAILS SCREEN (MAIN LAYOUT) ---
 class CourseDetailsScreen extends StatelessWidget {
-  const CourseDetailsScreen({super.key});
+  // FIELD TO ACCEPT COURSE ID
+  final String? courseId;
+  const CourseDetailsScreen({super.key, this.courseId});
+
+  // Placeholder data
+  final String courseTitle = 'Introduction to Hair Mak...';
+  final String instructorName = 'Brunelle';
+  final String instructorJob = 'Hair Dresser';
+  final String courseCategory = 'Hair Making';
+
+  // UPDATED VIDEO LINK
+  final String mockVideoUrl = 'https://www.youtube.com/watch?v=mUY-FJfSCsM';
 
   @override
   Widget build(BuildContext context) {
@@ -29,6 +44,11 @@ class CourseDetailsScreen extends StatelessWidget {
     // Define consistent styling elements
     final Color primaryColor = Colors.blue.shade700;
     const BorderRadius roundedBorder28 = BorderRadius.all(Radius.circular(28));
+
+    // Debugging the received ID
+    if (courseId != null) {
+      print('Loading Course ID: $courseId');
+    }
 
     return DefaultTabController(
       length: tabs.length,
@@ -39,13 +59,14 @@ class CourseDetailsScreen extends StatelessWidget {
             return <Widget>[
               // --- 1. Collapsible Video Header ---
               SliverAppBar(
-                expandedHeight: 250.0,
+                // 🌟 FIX: Increased expandedHeight to 350.0 🌟
+                expandedHeight: 350.0,
                 floating: false,
                 pinned: true,
                 backgroundColor: Colors.white,
                 leading: IconButton(
                   icon: const Icon(Icons.arrow_back, color: Colors.white),
-                  onPressed: () {},
+                  onPressed: () => Navigator.of(context).pop(),
                 ),
                 flexibleSpace: FlexibleSpaceBar(
                   centerTitle: true,
@@ -54,19 +75,24 @@ class CourseDetailsScreen extends StatelessWidget {
                     children: [
                       // Video Placeholder
                       Container(color: Colors.black),
-                      // Play Button
-                      Center(
-                        child: Container(
-                          width: 60,
-                          height: 60,
-                          decoration: BoxDecoration(
-                            color: primaryColor.withOpacity(0.8),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.play_arrow,
-                            color: Colors.white,
-                            size: 30,
+
+                      // CLICKABLE PLAY BUTTON
+                      GestureDetector(
+                        // 🌟 USE FIXED SNACKBAR FUNCTION 🌟
+                        onTap: () => _playVideo(context, mockVideoUrl),
+                        child: Center(
+                          child: Container(
+                            width: 60,
+                            height: 60,
+                            decoration: BoxDecoration(
+                              color: primaryColor.withOpacity(0.8),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.play_arrow,
+                              color: Colors.white,
+                              size: 30,
+                            ),
                           ),
                         ),
                       ),
@@ -94,7 +120,7 @@ class CourseDetailsScreen extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              'Hair Making',
+                              courseCategory, // Dynamic category placeholder
                               style: TextStyle(
                                 color: Colors.orange.shade700,
                                 fontWeight: FontWeight.bold,
@@ -118,9 +144,9 @@ class CourseDetailsScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         // Course Title
-                        const Text(
-                          'Introduction to Hair Mak...',
-                          style: TextStyle(
+                        Text(
+                          courseTitle, // Dynamic title placeholder
+                          style: const TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
                           ),
@@ -172,7 +198,12 @@ class CourseDetailsScreen extends StatelessWidget {
           // --- 3. TabBarView Content ---
           body: TabBarView(
             children: [
-              AboutTabView(primaryColor: primaryColor),
+              // PASS dynamic data
+              AboutTabView(
+                primaryColor: primaryColor,
+                instructorName: instructorName,
+                instructorJob: instructorJob,
+              ),
               CurriculumTabView(primaryColor: primaryColor),
             ],
           ),
@@ -237,11 +268,20 @@ class CourseDetailsScreen extends StatelessWidget {
 
 class AboutTabView extends StatelessWidget {
   final Color primaryColor;
+  // NEW: Dynamic instructor fields
+  final String instructorName;
+  final String instructorJob;
 
-  const AboutTabView({super.key, required this.primaryColor});
+  const AboutTabView({
+    super.key,
+    required this.primaryColor,
+    required this.instructorName,
+    required this.instructorJob,
+  });
 
   @override
   Widget build(BuildContext context) {
+    // Spacing review: Vertical rhythm is maintained at 12-16-32 pixels where appropriate.
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -287,19 +327,22 @@ class AboutTabView extends StatelessWidget {
                     ),
                     margin: const EdgeInsets.only(right: 12),
                   ),
-                  const Column(
+                  Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Brunelle',
-                        style: TextStyle(
+                        instructorName, // Dynamic instructor name
+                        style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
                       Text(
-                        'Hair Dresser',
-                        style: TextStyle(fontSize: 14, color: Colors.grey),
+                        instructorJob, // Dynamic instructor job
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey,
+                        ),
                       ),
                     ],
                   ),

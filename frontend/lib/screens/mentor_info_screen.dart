@@ -1,29 +1,38 @@
 import 'package:flutter/material.dart';
+// Import the Mentor model and sample data
+import 'top_mentors_screen.dart'; // Assuming Mentor and sampleMentors are here
 
-// --- MAIN APPLICATION WIDGET ---
-class MentorInfoApp extends StatelessWidget {
-  const MentorInfoApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Mentor Info',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        appBarTheme: const AppBarTheme(color: Colors.white, elevation: 0),
-      ),
-      home: const MentorProfileScreen(),
-    );
+// --- HELPER FUNCTION ---
+// Function to simulate fetching mentor data based on ID
+Mentor? _findMentorById(String id) {
+  try {
+    // Uses the sampleMentors list defined in top_mentors_screen.dart
+    return sampleMentors.firstWhere((m) => m.id == id);
+  } catch (e) {
+    return null; // Return null if not found
   }
 }
 
 // --- 1. MENTOR PROFILE SCREEN (MAIN LAYOUT) ---
 class MentorProfileScreen extends StatelessWidget {
-  const MentorProfileScreen({super.key});
+  // ACCEPT MENTOR ID PASSED FROM ROUTE
+  final String mentorId;
+
+  const MentorProfileScreen({super.key, required this.mentorId});
 
   @override
   Widget build(BuildContext context) {
+    // Fetch the mentor data based on the passed ID
+    final Mentor? mentor = _findMentorById(mentorId);
+    final Color primaryColor = Colors.blue.shade700;
+
+    if (mentor == null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Error')),
+        body: const Center(child: Text('Mentor profile not found.')),
+      );
+    }
+
     const List<Tab> _tabs = [Tab(text: 'Courses'), Tab(text: 'Ratings')];
 
     return DefaultTabController(
@@ -33,42 +42,41 @@ class MentorProfileScreen extends StatelessWidget {
           slivers: <Widget>[
             // --- Sliver AppBar for Profile Header ---
             SliverAppBar(
-              expandedHeight:
-                  330.0, // Increased height to accommodate the bio and tab bar
+              // FIX: Increase expandedHeight aggressively to resolve overflow (370 -> 400)
+              expandedHeight: 400.0,
               floating: true,
               pinned: true,
               automaticallyImplyLeading: false,
               leading: IconButton(
                 icon: const Icon(Icons.arrow_back, color: Colors.black),
-                onPressed: () {},
+                onPressed: () => Navigator.of(context).pop(), // Go back
               ),
-              flexibleSpace: const FlexibleSpaceBar(
+              flexibleSpace: FlexibleSpaceBar(
                 collapseMode: CollapseMode.pin,
                 background: Padding(
-                  padding: EdgeInsets.only(
-                    bottom: 120,
-                  ), // Leave space for the bottom part
-                  child: ProfileHeader(),
+                  // Adjust padding to match the PreferredSize height (130)
+                  padding: const EdgeInsets.only(bottom: 130),
+                  // PASS THE FOUND MENTOR DATA
+                  child: ProfileHeader(mentor: mentor),
                 ),
               ),
               bottom: PreferredSize(
-                preferredSize: const Size.fromHeight(
-                  120.0,
-                ), // Height for bio and TabBar
+                // Height of the bottom section (Bio + Tabs)
+                preferredSize: const Size.fromHeight(130.0),
                 child: Container(
                   color: Colors.white,
                   child: Column(
                     children: [
                       // Bio/Quote Section
-                      const Padding(
-                        padding: EdgeInsets.symmetric(
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
                           horizontal: 32.0,
                           vertical: 16.0,
                         ),
                         child: Text(
-                          "\"Hair Making is what I do for a living and I absolutely love doing it and also teaching about it!\"",
+                          "\"${mentor.bio}\"", // USE MENTOR BIO
                           textAlign: TextAlign.center,
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontStyle: FontStyle.italic,
                             color: Colors.black87,
                           ),
@@ -77,9 +85,9 @@ class MentorProfileScreen extends StatelessWidget {
                       // TabBar for switching views
                       TabBar(
                         tabs: _tabs,
-                        labelColor: Colors.blue.shade700,
+                        labelColor: primaryColor,
                         unselectedLabelColor: Colors.grey,
-                        indicatorColor: Colors.blue.shade700,
+                        indicatorColor: primaryColor,
                         indicatorSize: TabBarIndicatorSize.label,
                         indicatorWeight: 3.0,
                       ),
@@ -96,7 +104,14 @@ class MentorProfileScreen extends StatelessWidget {
 
             // --- SliverList for TabBarView Content ---
             SliverFillRemaining(
-              child: TabBarView(children: [CoursesView(), RatingsView()]),
+              child: TabBarView(
+                children: [
+                  const CoursesView(),
+                  RatingsView(
+                    primaryColor: primaryColor,
+                  ), // Pass color for styling
+                ],
+              ),
             ),
           ],
         ),
@@ -107,109 +122,10 @@ class MentorProfileScreen extends StatelessWidget {
 
 // --- 2. PROFILE HEADER WIDGET ---
 class ProfileHeader extends StatelessWidget {
-  const ProfileHeader({super.key});
+  final Mentor mentor;
+  const ProfileHeader({super.key, required this.mentor});
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.only(top: 80),
-      alignment: Alignment.center,
-      color: Colors.white,
-      child: Column(
-        children: <Widget>[
-          // Profile Image Placeholder
-          Container(
-            width: 80,
-            height: 80,
-            decoration: const BoxDecoration(
-              color: Colors.black,
-              shape: BoxShape.circle,
-            ),
-          ),
-          const SizedBox(height: 8),
-          // Mentor Name
-          const Text(
-            'Denaton Agbikossi',
-            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-          ),
-          // Job Title/Workplace
-          const Text(
-            'Hair Maker at Maison de Joelle',
-            style: TextStyle(fontSize: 14, color: Colors.grey),
-          ),
-          const SizedBox(height: 16),
-          // Stats Row
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              _buildStatColumn('12', 'Courses'),
-              _buildStatDivider(),
-              _buildStatColumn('158', 'Students'),
-              _buildStatDivider(),
-              _buildStatColumn('500+', 'Ratings'),
-            ],
-          ),
-          const SizedBox(height: 16),
-          // Action Buttons Row (Follow & Message)
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 32, right: 8),
-                  child: OutlinedButton(
-                    onPressed: () {},
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.blue.shade700,
-                      side: BorderSide(color: Colors.blue.shade700),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(25),
-                      ),
-                      backgroundColor: Colors.blue.shade50,
-                    ),
-                    child: const Text(
-                      'Follow',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 8, right: 32),
-                  child: ElevatedButton(
-                    onPressed: () {},
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue.shade700,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(25),
-                      ),
-                      elevation: 0,
-                    ),
-                    child: const Text(
-                      'Message',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-        ],
-      ),
-    );
-  }
-
+  // Helper method for the stats row
   Widget _buildStatColumn(String value, String label) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -225,14 +141,118 @@ class ProfileHeader extends StatelessWidget {
     );
   }
 
+  // Helper method for the divider between stats
   Widget _buildStatDivider() {
     return Container(height: 20, width: 1, color: Colors.grey.shade300);
   }
+
+  // BUILD METHOD FOR THE FOLLOW/MESSAGE ACTION BUTTONS
+  Widget _buildActionButtons(Color primaryColor) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: <Widget>[
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.only(left: 32, right: 8),
+            child: OutlinedButton(
+              onPressed: () {},
+              style: OutlinedButton.styleFrom(
+                foregroundColor: primaryColor,
+                side: BorderSide(color: primaryColor),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(25),
+                ),
+                backgroundColor: Colors.blue.shade50,
+              ),
+              child: const Text(
+                'Follow',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+        ),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.only(left: 8, right: 32),
+            child: ElevatedButton(
+              onPressed: () {},
+              style: ElevatedButton.styleFrom(
+                backgroundColor: primaryColor,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(25),
+                ),
+                elevation: 0,
+              ),
+              child: const Text(
+                'Message',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final Color primaryColor = Colors.blue.shade700;
+
+    return Container(
+      // FIX: Adjusted top padding slightly
+      padding: const EdgeInsets.only(top: 60),
+      alignment: Alignment.center,
+      color: Colors.white,
+      child: Column(
+        children: <Widget>[
+          // Profile Image Placeholder
+          Container(
+            width: 80,
+            height: 80,
+            decoration: const BoxDecoration(
+              color: Colors.black,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(height: 8),
+          // Mentor Name
+          Text(
+            mentor.name,
+            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+          ),
+          // Job Title/Workplace
+          Text(
+            "${mentor.specialty} at ${mentor.workplace}",
+            style: const TextStyle(fontSize: 14, color: Colors.grey),
+          ),
+          const SizedBox(height: 12),
+          // Stats Row
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              _buildStatColumn(mentor.courses.toString(), 'Courses'),
+              _buildStatDivider(),
+              _buildStatColumn(mentor.students.toString(), 'Students'),
+              _buildStatDivider(),
+              _buildStatColumn("${mentor.ratings.toInt()}+", 'Ratings'),
+            ],
+          ),
+          const SizedBox(height: 12),
+          // CALL THE BUTTONS METHOD HERE
+          _buildActionButtons(primaryColor),
+          const SizedBox(height: 12),
+        ],
+      ),
+    );
+  }
 }
 
-// --- 3. COURSES TAB VIEW ---
+// --- 3. COURSES TAB VIEW (Fixed data placeholder) ---
 class CoursesView extends StatelessWidget {
-  CoursesView({super.key});
+  const CoursesView({super.key});
 
   final List<Map<String, String>> courses = const [
     {
@@ -249,7 +269,6 @@ class CoursesView extends StatelessWidget {
       'rating': '4.2',
       'modules': '12 Modules',
     },
-    // Adding a third item for scrolling demonstration
     {
       'title': 'Advanced Braiding Techniques',
       'category': 'Hair Making',
@@ -261,7 +280,9 @@ class CoursesView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // FIX: Set primary: false to resolve RenderFlex overflow
     return ListView.separated(
+      primary: false,
       padding: const EdgeInsets.all(16.0),
       itemCount: courses.length,
       separatorBuilder: (context, index) =>
@@ -280,7 +301,7 @@ class CoursesView extends StatelessWidget {
   }
 }
 
-// Course List Item
+// Course List Item (Simplified for brevity)
 class CourseListItem extends StatelessWidget {
   final String title;
   final String category;
@@ -320,9 +341,7 @@ class CourseListItem extends StatelessWidget {
               Text(
                 category,
                 style: TextStyle(
-                  color: Colors
-                      .orange
-                      .shade700, // Slightly different color for contrast
+                  color: Colors.orange.shade700,
                   fontWeight: FontWeight.bold,
                   fontSize: 13,
                 ),
@@ -368,9 +387,11 @@ class CourseListItem extends StatelessWidget {
   }
 }
 
-// --- 4. RATINGS TAB VIEW ---
+// --- 4. RATINGS TAB VIEW (UPDATED) ---
 class RatingsView extends StatelessWidget {
-  RatingsView({super.key});
+  RatingsView({super.key, required this.primaryColor});
+
+  final Color primaryColor;
 
   final List<Map<String, dynamic>> ratings = const [
     {
@@ -400,8 +421,13 @@ class RatingsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // FIX: Set primary: false to resolve RenderFlex overflow
     return ListView.separated(
-      padding: const EdgeInsets.only(top: 8.0),
+      primary: false,
+      padding: const EdgeInsets.only(
+        top: 8.0,
+        bottom: 20,
+      ), // Added bottom padding
       itemCount: ratings.length,
       separatorBuilder: (context, index) => const Divider(
         height: 1,
@@ -413,6 +439,7 @@ class RatingsView extends StatelessWidget {
       itemBuilder: (context, index) {
         final rating = ratings[index];
         return RatingListItem(
+          primaryColor: primaryColor,
           name: rating['name'] as String,
           comment: rating['comment'] as String,
           score: rating['score'] as double,
@@ -424,8 +451,9 @@ class RatingsView extends StatelessWidget {
   }
 }
 
-// Rating List Item
+// UPDATED Rating List Item
 class RatingListItem extends StatelessWidget {
+  final Color primaryColor;
   final String name;
   final String comment;
   final double score;
@@ -434,6 +462,7 @@ class RatingListItem extends StatelessWidget {
 
   const RatingListItem({
     super.key,
+    required this.primaryColor,
     required this.name,
     required this.comment,
     required this.score,
@@ -453,7 +482,7 @@ class RatingListItem extends StatelessWidget {
             width: 40,
             height: 40,
             decoration: const BoxDecoration(
-              color: Colors.black,
+              color: Colors.black, // Placeholder
               shape: BoxShape.circle,
             ),
             margin: const EdgeInsets.only(right: 12),
@@ -489,7 +518,7 @@ class RatingListItem extends StatelessWidget {
                           Text(
                             score.toString(),
                             style: TextStyle(
-                              color: Colors.blue.shade700,
+                              color: primaryColor,
                               fontWeight: FontWeight.bold,
                               fontSize: 12,
                             ),
@@ -500,6 +529,7 @@ class RatingListItem extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 4),
+                // Comment
                 Text(
                   comment,
                   style: const TextStyle(fontSize: 14, color: Colors.black87),
@@ -508,6 +538,7 @@ class RatingListItem extends StatelessWidget {
                 // Likes and Time
                 Row(
                   children: [
+                    // Heart Icon and Like Count
                     Icon(Icons.favorite, color: Colors.red.shade600, size: 16),
                     const SizedBox(width: 4),
                     Text(
@@ -518,6 +549,7 @@ class RatingListItem extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 12),
+                    // Time Since Posted
                     Text(
                       time,
                       style: const TextStyle(fontSize: 14, color: Colors.grey),

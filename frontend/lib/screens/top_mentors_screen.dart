@@ -1,24 +1,76 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/routes.dart'; // Ensure routes are imported
 
 // --- Data Model and Sample Data ---
 
 class Mentor {
+  // ADD ID AND PROFILE DETAILS
+  final String id;
   final String name;
   final String specialty;
-  // In a real app, this would be a URL or asset path
-  // final String imageUrl;
+  final String workplace;
+  final int courses;
+  final int students;
+  final double ratings;
+  final String bio;
 
-  const Mentor({required this.name, required this.specialty});
+  const Mentor({
+    required this.id,
+    required this.name,
+    required this.specialty,
+    required this.workplace,
+    required this.courses,
+    required this.students,
+    required this.ratings,
+    required this.bio,
+  });
 }
 
+// UPDATED SAMPLE DATA
 final List<Mentor> sampleMentors = [
-  const Mentor(name: 'Denaton Agbikossi', specialty: 'Hair Making'),
-  const Mentor(name: 'Chinemerem Judith', specialty: 'Nail Care'),
-  const Mentor(name: 'Precious Mozia', specialty: 'Hair Styling'),
-  const Mentor(name: 'Denaton Agbikossi', specialty: 'Hair Making'),
-  const Mentor(name: 'Chinemerem Judith', specialty: 'Nail Care'),
-  const Mentor(name: 'Precious Mozia', specialty: 'Hair Styling'),
-  const Mentor(name: 'Denaton Agbikossi', specialty: 'Hair Making'),
+  const Mentor(
+    id: 'M001',
+    name: 'Denaton Agbikossi',
+    specialty: 'Hair Making',
+    workplace: 'Maison de Joelle',
+    courses: 12,
+    students: 158,
+    ratings: 500,
+    bio:
+        "Hair Making is what I do for a living and I absolutely love doing it and also teaching about it!",
+  ),
+  const Mentor(
+    id: 'M002',
+    name: 'Chinemerem Judith',
+    specialty: 'Nail Care',
+    workplace: 'Luxury Spa',
+    courses: 8,
+    students: 90,
+    ratings: 230,
+    bio:
+        "Passionate about artistic nail design and giving my students the best foundation in the industry.",
+  ),
+  const Mentor(
+    id: 'M003',
+    name: 'Precious Mozia',
+    specialty: 'Hair Styling',
+    workplace: 'StyleHer Academy',
+    courses: 20,
+    students: 300,
+    ratings: 750,
+    bio:
+        "My goal is to empower the next generation of stylists with modern techniques and business skills.",
+  ),
+  const Mentor(
+    id: 'M004',
+    name: 'Jane Doe',
+    specialty: 'Skin Care',
+    workplace: 'Dermatology Center',
+    courses: 5,
+    students: 50,
+    ratings: 150,
+    bio: "Focused on holistic skin health and science-backed routines.",
+  ),
 ];
 
 // --- Mentor Card Widget ---
@@ -37,8 +89,6 @@ class MentorCard extends StatelessWidget {
             vertical: 8.0,
             horizontal: 16.0,
           ),
-
-          // Left: Circular Mentor Avatar Placeholder
           leading: Container(
             width: 56,
             height: 56,
@@ -46,10 +96,7 @@ class MentorCard extends StatelessWidget {
               color: Colors.black, // Placeholder for the avatar
               shape: BoxShape.circle,
             ),
-            // You would use CircleAvatar with a background image here
           ),
-
-          // Title: Mentor Name
           title: Text(
             mentor.name,
             style: const TextStyle(
@@ -58,23 +105,21 @@ class MentorCard extends StatelessWidget {
               color: Color(0xFF1E1E1E),
             ),
           ),
-
-          // Subtitle: Specialty
           subtitle: Text(
             mentor.specialty,
             style: TextStyle(fontSize: 14, color: Colors.grey[600]),
           ),
           onTap: () {
-            // Add navigation to mentor profile page here
+            // NAVIGATION TO PROFILE SCREEN
+            Navigator.of(context).pushNamed(
+              AppRoutes.mentorProfile,
+              arguments: mentor.id, // Pass the mentor ID
+            );
           },
         ),
-        // Subtle divider, as seen in the screenshot's list
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: 16.0),
-          child: Divider(
-            height: 0.5,
-            color: Color(0xFFE0E0E0), // Light gray color for the divider
-          ),
+          child: Divider(height: 0.5, color: Color(0xFFE0E0E0)),
         ),
       ],
     );
@@ -89,7 +134,6 @@ class TopMentorsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // The background color is set via the theme in main.dart
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
