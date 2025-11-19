@@ -540,14 +540,14 @@ class _CourseCard extends StatelessWidget {
               borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(15),
               ),
-              image: thumbnailUrl != null
+              image: thumbnailUrl != null && thumbnailUrl!.isNotEmpty
                   ? DecorationImage(
                       image: NetworkImage(thumbnailUrl!),
                       fit: BoxFit.cover,
                     )
                   : null,
             ),
-            child: thumbnailUrl == null
+            child: thumbnailUrl == null || thumbnailUrl!.isEmpty
                 ? Center(
                     child: Icon(
                       Icons.videocam,

@@ -81,37 +81,18 @@ class _AuthOrOnboardingState extends State<AuthOrOnboarding> {
   @override
   void initState() {
     super.initState();
-    // Force logout on app restart (for testing)
-    FirebaseAuth.instance.signOut();
+    // Clear all cached authentication data
+    _clearAuthCache();
+  }
+
+  Future<void> _clearAuthCache() async {
+    await FirebaseAuth.instance.signOut();
   }
 
   @override
   Widget build(BuildContext context) {
-    // Listen to authentication state changes
-    return StreamBuilder<User?>(
-      stream: FirebaseAuth.instance.authStateChanges(),
-      builder: (context, snapshot) {
-        // Show loading while checking auth state
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
-        }
-
-        // User is logged in
-        if (snapshot.hasData) {
-          final user = snapshot.data!;
-          // Check if email is verified
-          if (!user.emailVerified) {
-            return const EmailVerificationScreen();
-          }
-          return const AuthWrapper();
-        } else {
-          // User is not logged in - show onboarding
-          return const OnboardingScreen();
-        }
-      },
-    );
+    // Always show onboarding screen - no auto-login
+    return const OnboardingScreen();
   }
 }
 
