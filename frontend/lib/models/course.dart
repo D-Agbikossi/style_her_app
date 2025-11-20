@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 /**
  * Course Model
  * 
@@ -39,6 +41,16 @@ class Course {
    * URL for course thumbnail image
    */
   final String thumbnailUrl;
+  
+  /**
+   * List of video URLs (playable videos for the course)
+   */
+  final List<String> videoUrls;
+  
+  /**
+   * List of picture/image URLs for the course
+   */
+  final List<String> pictureUrls;
   
   /**
    * Course duration in minutes
@@ -93,6 +105,8 @@ class Course {
     required this.difficulty,
     required this.instructor,
     required this.thumbnailUrl,
+    this.videoUrls = const [],
+    this.pictureUrls = const [],
     required this.duration,
     required this.lessonCount,
     required this.rating,
@@ -119,14 +133,24 @@ class Course {
       difficulty: data['difficulty'] ?? 'Beginner',
       instructor: data['instructor'] ?? 'Unknown',
       thumbnailUrl: data['thumbnailUrl'] ?? '',
+      videoUrls: data['videoUrls'] != null 
+          ? List<String>.from(data['videoUrls'] ?? [])
+          : [],
+      pictureUrls: data['pictureUrls'] != null
+          ? List<String>.from(data['pictureUrls'] ?? [])
+          : [],
       duration: data['duration'] ?? 0,
       lessonCount: data['lessonCount'] ?? 0,
       rating: (data['rating'] ?? 0.0).toDouble(),
       enrolledCount: data['enrolledCount'] ?? 0,
       isFree: data['isFree'] ?? true,
       price: data['price']?.toDouble(),
-      createdAt: (data['createdAt'] as DateTime?) ?? DateTime.now(),
-      updatedAt: (data['updatedAt'] as DateTime?) ?? DateTime.now(),
+      createdAt: (data['createdAt'] is Timestamp)
+          ? (data['createdAt'] as Timestamp).toDate()
+          : (data['createdAt'] as DateTime?) ?? DateTime.now(),
+      updatedAt: (data['updatedAt'] is Timestamp)
+          ? (data['updatedAt'] as Timestamp).toDate()
+          : (data['updatedAt'] as DateTime?) ?? DateTime.now(),
     );
   }
 
@@ -143,6 +167,8 @@ class Course {
       'difficulty': difficulty,
       'instructor': instructor,
       'thumbnailUrl': thumbnailUrl,
+      'videoUrls': videoUrls,
+      'pictureUrls': pictureUrls,
       'duration': duration,
       'lessonCount': lessonCount,
       'rating': rating,

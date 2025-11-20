@@ -1,5 +1,16 @@
+/**
+ * Mentor Management Screen
+ * 
+ * This screen handles mentor management functionality including:
+ * - Display all mentors with real-time updates
+ * - Search and filter mentors by status
+ * - Create, edit, and delete mentors
+ * - Real-time data synchronization with Firestore
+ */
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+
 import '../services/admin_service.dart';
 import '../routes.dart';
 import '../main.dart';

@@ -1,4 +1,15 @@
+/**
+ * Add/Edit Mentor Screen
+ * 
+ * This screen handles mentor creation and editing functionality including:
+ * - Form validation for all mentor fields
+ * - Email and password input for new mentors
+ * - Specialty and status selection
+ * - Create and update mentor operations
+ */
+
 import 'package:flutter/material.dart';
+
 import '../services/admin_service.dart';
 import '../main.dart';
 

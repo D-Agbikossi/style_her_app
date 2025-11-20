@@ -22,6 +22,9 @@ import '../services/admin_service.dart';
 // Route imports
 import '../routes.dart';
 
+// Widget imports
+import '../widgets/bulk_operations_bar.dart';
+
 // Theme imports
 import '../main.dart';
 
@@ -42,10 +45,13 @@ class VideoScreen extends StatefulWidget {
  */
 class _VideoScreenState extends State<VideoScreen> {
   // Search and filter state
-  final TextEditingController _searchController = TextEditingController(); // Search input controller
-  String _selectedMentor = 'All'; // Currently selected mentor filter
-  String _selectedCategory = 'All'; // Currently selected category filter
-  List<String> _categories = ['All']; // Available categories list
+  final TextEditingController _searchController = TextEditingController();
+  String _selectedCategory = 'All';
+  List<String> _categories = ['All'];
+  
+  // Bulk operations
+  final Set<String> _selectedCourseIds = {};
+  bool _isSelectionMode = false;
   
   // Service instance
   final _adminService = AdminService();
@@ -67,6 +73,56 @@ class _VideoScreenState extends State<VideoScreen> {
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  Future<void> _handleBulkDelete() async {
+    if (_selectedCourseIds.isEmpty) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Courses?'),
+        content: Text('Are you sure you want to delete ${_selectedCourseIds.length} course(s)? This action cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      try {
+        final count = await _adminService.bulkDeleteCourses(_selectedCourseIds.toList());
+        if (mounted) {
+          setState(() {
+            _selectedCourseIds.clear();
+            _isSelectionMode = false;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('$count course(s) deleted successfully'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error: ${e.toString()}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    }
   }
 
   Future<void> _deleteCourse(String courseId, String title) async {
@@ -162,6 +218,23 @@ class _VideoScreenState extends State<VideoScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
+          if (_isSelectionMode)
+            IconButton(
+              icon: const Icon(Icons.close, color: Colors.black),
+              onPressed: () {
+                setState(() {
+                  _isSelectionMode = false;
+                  _selectedCourseIds.clear();
+                });
+              },
+            )
+          else
+            IconButton(
+              icon: const Icon(Icons.checklist, color: Colors.black),
+              onPressed: () {
+                setState(() => _isSelectionMode = true);
+              },
+            ),
           IconButton(
             icon: const Icon(Icons.add, color: Colors.black),
             onPressed: () async {
@@ -198,16 +271,6 @@ class _VideoScreenState extends State<VideoScreen> {
                 Row(
                   children: [
                     Expanded(
-                      child: _FilterChip(
-                        label: 'Mentor',
-                        value: _selectedMentor,
-                        onTap: () {
-                          // TODO: Show mentor filter
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
                       child: PopupMenuButton<String>(
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -241,7 +304,6 @@ class _VideoScreenState extends State<VideoScreen> {
                     TextButton(
                       onPressed: () {
                         setState(() {
-                          _selectedMentor = 'All';
                           _selectedCategory = 'All';
                           _searchController.clear();
                         });
@@ -285,9 +347,24 @@ class _VideoScreenState extends State<VideoScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   itemCount: courses.length,
                   itemBuilder: (context, index) {
+                    final course = courses[index];
+                    final isSelected = _selectedCourseIds.contains(course.id);
                     return _VideoCard(
-                      course: courses[index],
-                      onOptionsTap: () => _showCourseOptions(courses[index]),
+                      course: course,
+                      isSelectionMode: _isSelectionMode,
+                      isSelected: isSelected,
+                      onTap: _isSelectionMode
+                          ? () {
+                              setState(() {
+                                if (isSelected) {
+                                  _selectedCourseIds.remove(course.id);
+                                } else {
+                                  _selectedCourseIds.add(course.id);
+                                }
+                              });
+                            }
+                          : null,
+                      onOptionsTap: () => _showCourseOptions(course),
                     );
                   },
                 );
@@ -296,55 +373,15 @@ class _VideoScreenState extends State<VideoScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          final result = await Navigator.pushNamed(context, AdminRoutes.addCourse);
-          if (result == true) {
-            setState(() {}); // Refresh list
-          }
+      bottomNavigationBar: BulkOperationsBar(
+        selectedCount: _selectedCourseIds.length,
+        onClearSelection: () {
+          setState(() {
+            _selectedCourseIds.clear();
+            _isSelectionMode = false;
+          });
         },
-        backgroundColor: kPrimaryColor,
-        child: const Icon(Icons.add),
-      ),
-    );
-  }
-}
-
-class _FilterChip extends StatelessWidget {
-  final String label;
-  final String value;
-  final VoidCallback onTap;
-
-  const _FilterChip({
-    required this.label,
-    required this.value,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: kPrimaryColor.withOpacity(0.2),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              label,
-              style: const TextStyle(
-                color: kPrimaryColor,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(width: 4),
-            const Icon(Icons.arrow_drop_down, color: kPrimaryColor, size: 20),
-          ],
-        ),
+        onBulkDelete: _handleBulkDelete,
       ),
     );
   }
@@ -353,30 +390,41 @@ class _FilterChip extends StatelessWidget {
 class _VideoCard extends StatelessWidget {
   final Course course;
   final VoidCallback onOptionsTap;
+  final bool isSelectionMode;
+  final bool isSelected;
+  final VoidCallback? onTap;
 
   const _VideoCard({
     required this.course,
     required this.onOptionsTap,
+    this.isSelectionMode = false,
+    this.isSelected = false,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isSelected ? kPrimaryColor.withOpacity(0.1) : Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: isSelected
+              ? Border.all(color: kPrimaryColor, width: 2)
+              : null,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -421,10 +469,17 @@ class _VideoCard extends StatelessWidget {
                   ],
                 ),
               ),
-              IconButton(
-                icon: const Icon(Icons.more_vert, color: Colors.grey),
-                onPressed: onOptionsTap,
-              ),
+              if (isSelectionMode)
+                Icon(
+                  isSelected ? Icons.check_circle : Icons.circle_outlined,
+                  color: isSelected ? kPrimaryColor : Colors.grey,
+                  size: 24,
+                )
+              else
+                IconButton(
+                  icon: const Icon(Icons.more_vert, color: Colors.grey),
+                  onPressed: onOptionsTap,
+                ),
             ],
           ),
           const SizedBox(height: 12),
@@ -463,7 +518,8 @@ class _VideoCard extends StatelessWidget {
               ),
             ],
           ),
-        ],
+          ],
+        ),
       ),
     );
   }
