@@ -1,73 +1,190 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/course.dart';
+import '../constants/app_constants.dart';
 
+/**
+ * Course Provider
+ * 
+ * Manages course data from Firestore with real-time updates
+ */
 class CourseProvider with ChangeNotifier {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  
   List<Course> _allCourses = [];
   List<Course> _popularCourses = [];
+  Course? _currentCourse;
   bool _isLoading = false;
+  String? _error;
 
   List<Course> get allCourses => _allCourses;
   List<Course> get popularCourses => _popularCourses;
+  Course? get currentCourse => _currentCourse;
   bool get isLoading => _isLoading;
+  String? get error => _error;
 
+  /**
+   * Fetch all courses from Firestore
+   */
   Future<void> fetchAllCourses() async {
-    _isLoading = true;
-    notifyListeners();
+    try {
+      _isLoading = true;
+      _error = null;
+      notifyListeners();
 
-    // Simulate API call with sample data
-    await Future.delayed(const Duration(seconds: 1));
-    
-    _allCourses = [
-      Course(
-        id: '1',
-        title: 'Complete Makeup Course',
-        description: 'Learn professional makeup techniques',
-        category: 'Make Up',
-        difficulty: 'Beginner',
-        rating: 4.8,
-        lessonCount: 12,
-        duration: 120,
-        price: 99.99,
-        isFree: false,
-        thumbnailUrl: '',
-        instructor: 'Precious',
-        enrolledCount: 150,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      ),
-      Course(
-        id: '2',
-        title: 'Hair Styling Basics',
-        description: 'Master the art of hair styling',
-        category: 'Hair Styling',
-        difficulty: 'Intermediate',
-        rating: 4.6,
-        lessonCount: 8,
-        duration: 90,
-        price: 79.99,
-        isFree: false,
-        thumbnailUrl: '',
-        instructor: 'Brunelle',
-        enrolledCount: 120,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      ),
-    ];
+      final QuerySnapshot snapshot = await _firestore
+          .collection('courses')
+          .orderBy('createdAt', descending: true)
+          .get();
 
-    _isLoading = false;
-    notifyListeners();
+      _allCourses = snapshot.docs
+          .map((doc) => Course.fromMap(doc.id, doc.data() as Map<String, dynamic>))
+          .toList();
+
+      _isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      _error = 'Unable to load courses. Please check your connection and try again.';
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
+  /**
+   * Fetch popular courses (rating >= 4.5)
+   * Note: Sorts in memory to avoid composite index requirement
+   */
   Future<void> fetchPopularCourses() async {
-    _isLoading = true;
-    notifyListeners();
+    try {
+      _isLoading = true;
+      _error = null;
+      notifyListeners();
 
-    // Simulate API call
-    await Future.delayed(const Duration(seconds: 1));
+      // Fetch more courses and sort in memory to avoid index requirement
+      final QuerySnapshot snapshot = await _firestore
+          .collection('courses')
+          .where('rating', isGreaterThanOrEqualTo: AppConstants.minPopularRating)
+          .limit(AppConstants.maxSearchResults) // Get more, then sort and take top 10
+          .get();
+
+      _popularCourses = snapshot.docs
+          .map((doc) => Course.fromMap(doc.id, doc.data() as Map<String, dynamic>))
+          .toList()
+        ..sort((a, b) => b.rating.compareTo(a.rating))
+        ..take(AppConstants.popularCoursesLimit)
+        ..toList();
+
+      _isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      _error = 'Unable to load popular courses. Please try again.';
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /**
+   * Fetch a single course by ID
+   */
+  Future<void> fetchCourseById(String courseId) async {
+    try {
+      _isLoading = true;
+      _error = null;
+      notifyListeners();
+
+      final DocumentSnapshot doc = await _firestore
+          .collection('courses')
+          .doc(courseId)
+          .get();
+
+      if (doc.exists) {
+        _currentCourse = Course.fromMap(
+          doc.id,
+          doc.data() as Map<String, dynamic>,
+        );
+      } else {
+        _error = 'Course not found';
+      }
+
+      _isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      _error = 'Unable to load course details. Please try again.';
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /**
+   * Stream courses for real-time updates
+   */
+  Stream<List<Course>> getCoursesStream() {
+    return _firestore
+        .collection('courses')
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => Course.fromMap(
+                  doc.id,
+                  doc.data() as Map<String, dynamic>,
+                ))
+            .toList());
+  }
+
+  /**
+   * Search courses by title, description, category, or instructor
+   * Uses case-insensitive search for better results
+   */
+  Future<List<Course>> searchCourses(String query) async {
+    if (query.isEmpty) return [];
     
-    _popularCourses = _allCourses.where((course) => course.rating >= 4.5).toList();
+    try {
+      // Get all courses and filter in memory for better search
+      // This allows searching in title, description, category, and instructor
+      final QuerySnapshot snapshot = await _firestore
+          .collection('courses')
+          .limit(AppConstants.maxSearchResults * 2) // Limit to prevent excessive data transfer
+          .get();
+      
+      final queryLower = query.toLowerCase().trim();
+      
+      return snapshot.docs
+          .map((doc) => Course.fromMap(
+                doc.id,
+                doc.data() as Map<String, dynamic>,
+              ))
+          .where((course) => 
+              course.title.toLowerCase().contains(queryLower) ||
+              course.description.toLowerCase().contains(queryLower) ||
+              course.category.toLowerCase().contains(queryLower) ||
+              course.instructor.toLowerCase().contains(queryLower)
+          )
+          .take(AppConstants.maxSearchResults) // Limit results
+          .toList();
+    } catch (e) {
+      return [];
+    }
+  }
 
-    _isLoading = false;
-    notifyListeners();
+  /**
+   * Get courses by category
+   */
+  Future<List<Course>> getCoursesByCategory(String category) async {
+    try {
+      final QuerySnapshot snapshot = await _firestore
+          .collection('courses')
+          .where('category', isEqualTo: category)
+          .orderBy('createdAt', descending: true)
+          .get();
+
+      return snapshot.docs
+          .map((doc) => Course.fromMap(
+                doc.id,
+                doc.data() as Map<String, dynamic>,
+              ))
+          .toList();
+    } catch (e) {
+      return [];
+    }
   }
 }
