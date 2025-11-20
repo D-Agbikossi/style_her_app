@@ -141,7 +141,7 @@ class _MyCoursesScreenState extends State<MyCoursesScreen>
           child: Container(
             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: Colors.grey[100],
               borderRadius: BorderRadius.circular(28),
             ),
             child: TabBar(
