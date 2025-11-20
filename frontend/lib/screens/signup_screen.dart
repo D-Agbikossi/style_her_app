@@ -28,6 +28,7 @@ import '../main.dart';
 
 // Utils imports
 import '../utils/validators.dart';
+import '../routes.dart';
 
 const Color kPrimaryColor = Color(0xFF2C5BB1); // Main brand blue
 const Color kBackgroundColor = Color(0xFFF5F9FF); // App background color
@@ -53,15 +54,38 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _formKey = GlobalKey<FormState>(); // Form validation key
   final _nameController = TextEditingController(); // Name input controller
   final _emailController = TextEditingController(); // Email input controller
-  final _passwordController = TextEditingController(); // Password input controller
+  final _passwordController =
+      TextEditingController(); // Password input controller
   bool _isLoading = false; // Loading state for async operations
   String? _selectedCountry; // Selected country from dropdown
-  
+
   final List<String> _countries = [
-    'Nigeria', 'Kenya', 'Rwanda', 'Ghana', 'South Africa', 'Uganda', 'Tanzania',
-    'Ethiopia', 'Morocco', 'Egypt', 'Algeria', 'Tunisia', 'Cameroon', 'Ivory Coast',
-    'Senegal', 'Mali', 'Burkina Faso', 'Niger', 'Guinea', 'Benin', 'Togo',
-    'Sierra Leone', 'Liberia', 'Mauritania', 'Gambia', 'Cape Verde'
+    'Nigeria',
+    'Kenya',
+    'Rwanda',
+    'Ghana',
+    'South Africa',
+    'Uganda',
+    'Tanzania',
+    'Ethiopia',
+    'Morocco',
+    'Egypt',
+    'Algeria',
+    'Tunisia',
+    'Cameroon',
+    'Ivory Coast',
+    'Senegal',
+    'Mali',
+    'Burkina Faso',
+    'Niger',
+    'Guinea',
+    'Benin',
+    'Togo',
+    'Sierra Leone',
+    'Liberia',
+    'Mauritania',
+    'Gambia',
+    'Cape Verde',
   ];
 
   /**
@@ -97,7 +121,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Account created! Please check your email to verify your account.'),
+              content: Text(
+                'Account created! Please check your email to verify your account.',
+              ),
               backgroundColor: kPrimaryColor,
               duration: Duration(seconds: 5),
             ),
@@ -106,9 +132,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
         }
       } catch (error) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(error.toString())),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(error.toString())));
         }
       } finally {
         if (mounted) {
@@ -272,7 +298,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
               return _countries;
             }
             return _countries.where((String option) {
-              return option.toLowerCase().contains(textEditingValue.text.toLowerCase());
+              return option.toLowerCase().contains(
+                textEditingValue.text.toLowerCase(),
+              );
             });
           },
           onSelected: (String selection) {
@@ -280,19 +308,22 @@ class _SignUpScreenState extends State<SignUpScreen> {
               _selectedCountry = selection;
             });
           },
-          fieldViewBuilder: (context, controller, focusNode, onEditingComplete) {
-            return TextFormField(
-              controller: controller,
-              focusNode: focusNode,
-              onEditingComplete: onEditingComplete,
-              validator: (value) => _selectedCountry == null ? 'Please select a country' : null,
-              decoration: const InputDecoration(
-                hintText: "Select or type country",
-                border: OutlineInputBorder(),
-                suffixIcon: Icon(Icons.arrow_drop_down),
-              ),
-            );
-          },
+          fieldViewBuilder:
+              (context, controller, focusNode, onEditingComplete) {
+                return TextFormField(
+                  controller: controller,
+                  focusNode: focusNode,
+                  onEditingComplete: onEditingComplete,
+                  validator: (value) => _selectedCountry == null
+                      ? 'Please select a country'
+                      : null,
+                  decoration: const InputDecoration(
+                    hintText: "Select or type country",
+                    border: OutlineInputBorder(),
+                    suffixIcon: Icon(Icons.arrow_drop_down),
+                  ),
+                );
+              },
           optionsViewBuilder: (context, onSelected, options) {
             return Align(
               alignment: Alignment.topLeft,
