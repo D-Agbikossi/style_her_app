@@ -1,79 +1,123 @@
-import 'package:flutter/material.dart';
+/**
+ * Course Detail Screen
+ * 
+ * Displays comprehensive course information with:
+ * - Video player for course videos
+ * - Image gallery for course pictures
+ * - Course details, instructor info, curriculum
+ */
 
-// --- MAIN APPLICATION WIDGET ---
-class CourseDetailsApp extends StatelessWidget {
-  const CourseDetailsApp({super.key});
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import '../providers/course_provider.dart';
+import '../widgets/video_player_widget.dart';
+import '../widgets/image_gallery_widget.dart';
+import '../models/course.dart';
+import '../services/enrollment_service.dart';
+import '../constants/app_constants.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+
+class CourseDetailsScreen extends StatefulWidget {
+  final String? courseId;
+
+  const CourseDetailsScreen({super.key, this.courseId});
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Course Details',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        appBarTheme: const AppBarTheme(color: Colors.transparent, elevation: 0),
-      ),
-      home: const CourseDetailsScreen(),
-    );
-  }
+  State<CourseDetailsScreen> createState() => _CourseDetailsScreenState();
 }
 
-// --- 1. COURSE DETAILS SCREEN (MAIN LAYOUT) ---
-class CourseDetailsScreen extends StatelessWidget {
-  const CourseDetailsScreen({super.key});
+class _CourseDetailsScreenState extends State<CourseDetailsScreen> {
+  int _selectedVideoIndex = 0;
+  bool _isEnrolled = false;
+  bool _isEnrolling = false;
+  final EnrollmentService _enrollmentService = EnrollmentService();
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.courseId != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Provider.of<CourseProvider>(context, listen: false)
+            .fetchCourseById(widget.courseId!);
+        _checkEnrollmentStatus();
+      });
+    }
+  }
+
+  Future<void> _checkEnrollmentStatus() async {
+    if (widget.courseId == null) return;
+    try {
+      final enrolled = await _enrollmentService.isEnrolled(widget.courseId!);
+      if (mounted) {
+        setState(() {
+          _isEnrolled = enrolled;
+        });
+      }
+    } catch (e) {
+      // Silently fail - enrollment check is not critical
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    const List<Tab> tabs = [Tab(text: 'About'), Tab(text: 'Curriculum')];
+    final courseProvider = Provider.of<CourseProvider>(context);
+    final course = courseProvider.currentCourse;
+    final primaryColor = Colors.blue.shade700;
+    const roundedBorder28 = BorderRadius.all(Radius.circular(28));
 
-    // Define consistent styling elements
-    final Color primaryColor = Colors.blue.shade700;
-    const BorderRadius roundedBorder28 = BorderRadius.all(Radius.circular(28));
+    if (courseProvider.isLoading) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Loading...')),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (courseProvider.error != null || course == null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Error')),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, size: 64, color: Colors.red),
+              const SizedBox(height: 16),
+              Text(
+                courseProvider.error ?? 'Course not found',
+                style: const TextStyle(fontSize: 16),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Go Back'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
 
     return DefaultTabController(
-      length: tabs.length,
+      length: 2,
       child: Scaffold(
         extendBodyBehindAppBar: true,
         body: NestedScrollView(
           headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
             return <Widget>[
-              // --- 1. Collapsible Video Header ---
               SliverAppBar(
-                expandedHeight: 250.0,
+                expandedHeight: 350.0,
                 floating: false,
                 pinned: true,
                 backgroundColor: Colors.white,
                 leading: IconButton(
                   icon: const Icon(Icons.arrow_back, color: Colors.white),
-                  onPressed: () {},
+                  onPressed: () => Navigator.of(context).pop(),
                 ),
                 flexibleSpace: FlexibleSpaceBar(
                   centerTitle: true,
-                  background: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      // Video Placeholder
-                      Container(color: Colors.black),
-                      // Play Button
-                      Center(
-                        child: Container(
-                          width: 60,
-                          height: 60,
-                          decoration: BoxDecoration(
-                            color: primaryColor.withOpacity(0.8),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.play_arrow,
-                            color: Colors.white,
-                            size: 30,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                  background: _buildVideoHeader(course, primaryColor),
                 ),
-                // --- 2. Course Info and TabBar ---
                 bottom: PreferredSize(
                   preferredSize: const Size.fromHeight(130.0),
                   child: Container(
@@ -89,12 +133,11 @@ class CourseDetailsScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const SizedBox(height: 16),
-                        // Top Info Row (Category & Rating)
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              'Hair Making',
+                              course.category,
                               style: TextStyle(
                                 color: Colors.orange.shade700,
                                 fontWeight: FontWeight.bold,
@@ -104,7 +147,7 @@ class CourseDetailsScreen extends StatelessWidget {
                             Row(
                               children: [
                                 Text(
-                                  '4.2',
+                                  course.rating.toStringAsFixed(1),
                                   style: TextStyle(
                                     color: primaryColor,
                                     fontWeight: FontWeight.bold,
@@ -117,16 +160,14 @@ class CourseDetailsScreen extends StatelessWidget {
                           ],
                         ),
                         const SizedBox(height: 4),
-                        // Course Title
-                        const Text(
-                          'Introduction to Hair Mak...',
-                          style: TextStyle(
+                        Text(
+                          course.title,
+                          style: const TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         const SizedBox(height: 8),
-                        // Stats Row (Videos & Hours)
                         Row(
                           children: [
                             const Icon(
@@ -135,9 +176,9 @@ class CourseDetailsScreen extends StatelessWidget {
                               color: Colors.grey,
                             ),
                             const SizedBox(width: 4),
-                            const Text(
-                              '21 Videos |',
-                              style: TextStyle(color: Colors.grey),
+                            Text(
+                              '${course.videoUrls.length} Videos |',
+                              style: const TextStyle(color: Colors.grey),
                             ),
                             const SizedBox(width: 8),
                             const Icon(
@@ -146,16 +187,18 @@ class CourseDetailsScreen extends StatelessWidget {
                               color: Colors.grey,
                             ),
                             const SizedBox(width: 4),
-                            const Text(
-                              '42 Hours',
-                              style: TextStyle(color: Colors.grey),
+                            Text(
+                              '${course.duration} Minutes',
+                              style: const TextStyle(color: Colors.grey),
                             ),
                           ],
                         ),
                         const SizedBox(height: 16),
-                        // TabBar
                         TabBar(
-                          tabs: tabs,
+                          tabs: const [
+                            Tab(text: 'About'),
+                            Tab(text: 'Curriculum'),
+                          ],
                           labelColor: primaryColor,
                           unselectedLabelColor: Colors.grey,
                           indicatorColor: primaryColor,
@@ -169,15 +212,24 @@ class CourseDetailsScreen extends StatelessWidget {
               ),
             ];
           },
-          // --- 3. TabBarView Content ---
           body: TabBarView(
             children: [
-              AboutTabView(primaryColor: primaryColor),
-              CurriculumTabView(primaryColor: primaryColor),
+              AboutTabView(
+                course: course,
+                primaryColor: primaryColor,
+              ),
+              CurriculumTabView(
+                course: course,
+                primaryColor: primaryColor,
+                onVideoSelect: (index) {
+                  setState(() {
+                    _selectedVideoIndex = index;
+                  });
+                },
+              ),
             ],
           ),
         ),
-        // --- 4. Fixed Bottom Enrollment Bar ---
         bottomNavigationBar: Container(
           decoration: BoxDecoration(
             color: Colors.white,
@@ -194,19 +246,37 @@ class CourseDetailsScreen extends StatelessWidget {
             children: [
               Expanded(
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: _isEnrolled || _isEnrolling
+                      ? null
+                      : () => _handleEnrollment(course, primaryColor),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: primaryColor,
+                    backgroundColor: _isEnrolled ? Colors.grey : primaryColor,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
                       borderRadius: roundedBorder28,
                     ),
                   ),
-                  child: const Text(
-                    'Enroll Now',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
+                  child: _isEnrolling
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        )
+                      : Text(
+                          _isEnrolled
+                              ? 'Enrolled'
+                              : course.isFree
+                                  ? 'Enroll Free'
+                                  : '\$${course.price?.toStringAsFixed(2)} Enroll',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                 ),
               ),
               const SizedBox(width: 16),
@@ -229,16 +299,103 @@ class CourseDetailsScreen extends StatelessWidget {
       ),
     );
   }
+
+  Widget _buildVideoHeader(Course course, Color primaryColor) {
+    if (course.videoUrls.isEmpty) {
+      return Container(
+        color: Colors.black,
+        child: course.thumbnailUrl.isNotEmpty
+            ? CachedNetworkImage(
+                imageUrl: course.thumbnailUrl,
+                fit: BoxFit.cover,
+                placeholder: (context, url) => const Center(
+                  child: CircularProgressIndicator(color: Colors.white),
+                ),
+                errorWidget: (context, url, error) => const Center(
+                  child: Icon(Icons.videocam, color: Colors.white30, size: 60),
+                ),
+              )
+            : const Center(
+                child: Icon(Icons.videocam, color: Colors.white30, size: 60),
+              ),
+      );
+    }
+
+    // Ensure selected index is within bounds
+    final validIndex = _selectedVideoIndex < course.videoUrls.length 
+        ? _selectedVideoIndex 
+        : 0;
+
+    return VideoPlayerWidget(
+      videoUrl: course.videoUrls[validIndex],
+      autoPlay: false,
+      showControls: true,
+    );
+  }
+
+  Future<void> _handleEnrollment(Course course, Color primaryColor) async {
+    if (widget.courseId == null) return;
+
+    setState(() {
+      _isEnrolling = true;
+    });
+
+    try {
+      final success = await _enrollmentService.enrollInCourse(widget.courseId!);
+      
+      if (mounted) {
+        setState(() {
+          _isEnrolling = false;
+          if (success) {
+            _isEnrolled = true;
+          }
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              success
+                  ? AppConstants.enrollmentSuccess
+                  : 'You are already enrolled in this course.',
+            ),
+            backgroundColor: success ? Colors.green : Colors.orange,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isEnrolling = false;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Failed to enroll: ${e.toString().replaceAll('Exception: ', '')}',
+            ),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
 }
 
 // ------------------------------------------------------------------
-// --- 2. ABOUT TAB VIEW ---
+// --- ABOUT TAB VIEW ---
 // ------------------------------------------------------------------
 
 class AboutTabView extends StatelessWidget {
+  final course;
   final Color primaryColor;
 
-  const AboutTabView({super.key, required this.primaryColor});
+  const AboutTabView({
+    super.key,
+    required this.course,
+    required this.primaryColor,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -247,26 +404,30 @@ class AboutTabView extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // --- Course Description ---
-          const Text(
-            'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris. Read More',
-            style: TextStyle(fontSize: 15, height: 1.4, color: Colors.black87),
-            maxLines: 4,
-            overflow: TextOverflow.ellipsis,
-          ),
-          TextButton(
-            onPressed: () {},
-            child: Text(
-              'Read More',
-              style: TextStyle(
-                color: primaryColor,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+          // Course Description
+          Text(
+            course.description,
+            style: const TextStyle(fontSize: 15, height: 1.4, color: Colors.black87),
           ),
           const Divider(height: 32),
 
-          // --- Instructor Section ---
+          // Image Gallery
+          if (course.pictureUrls.isNotEmpty) ...[
+            const Text(
+              'Course Images',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            ImageGalleryWidget(
+              imageUrls: course.pictureUrls,
+              crossAxisCount: 2,
+              spacing: 8.0,
+              aspectRatio: 1.0,
+            ),
+            const Divider(height: 32),
+          ],
+
+          // Instructor Section
           const Text(
             'Instructor',
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -277,7 +438,6 @@ class AboutTabView extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  // Image Placeholder
                   Container(
                     width: 50,
                     height: 50,
@@ -287,97 +447,41 @@ class AboutTabView extends StatelessWidget {
                     ),
                     margin: const EdgeInsets.only(right: 12),
                   ),
-                  const Column(
+                  Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Brunelle',
-                        style: TextStyle(
+                        course.instructor,
+                        style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      Text(
-                        'Hair Dresser',
+                      const Text(
+                        'Instructor',
                         style: TextStyle(fontSize: 14, color: Colors.grey),
                       ),
                     ],
                   ),
                 ],
               ),
-              Icon(Icons.message, color: primaryColor), // Message icon
+              Icon(Icons.message, color: primaryColor),
             ],
           ),
           const Divider(height: 32),
 
-          // --- What You'll Get Section ---
+          // What You'll Get Section
           const Text(
             "What You'll Get",
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 12),
-          _buildFeatureRow(primaryColor, Icons.description, '25 Lessons'),
-          _buildFeatureRow(
-            primaryColor,
-            Icons.devices,
-            'Access Mobile, Desktop',
-          ),
-          _buildFeatureRow(primaryColor, Icons.speed, 'Beginner Level'),
-          _buildFeatureRow(
-            primaryColor,
-            Icons.watch_later_outlined,
-            'Lifetime Access',
-          ),
-          _buildFeatureRow(
-            primaryColor,
-            Icons.military_tech,
-            'Certificate of Completion',
-          ),
-          const Divider(height: 32),
-
-          // --- Reviews Section ---
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Reviews',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              TextButton(
-                onPressed: () {},
-                child: Row(
-                  children: [
-                    Text(
-                      'SEE ALL',
-                      style: TextStyle(
-                        color: primaryColor,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const Icon(Icons.chevron_right, color: Colors.grey),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          _buildReviewCard(
-            primaryColor,
-            'Will',
-            'This course has been very useful. Mentor was well spoken totally loved it.',
-            4.5,
-            578,
-            Colors.blue.shade300,
-          ),
-          _buildReviewCard(
-            primaryColor,
-            'Martha E. Thompson',
-            'This course has been very useful. Mentor was well spoken totally loved it. It had fun sessions as well.',
-            4.5,
-            578,
-            Colors.amber,
-          ),
-          const SizedBox(height: 100), // Padding for the bottom bar
+          _buildFeatureRow(primaryColor, Icons.description, '${course.lessonCount} Lessons'),
+          _buildFeatureRow(primaryColor, Icons.devices, 'Access Mobile, Desktop'),
+          _buildFeatureRow(primaryColor, Icons.speed, '${course.difficulty} Level'),
+          _buildFeatureRow(primaryColor, Icons.watch_later_outlined, 'Lifetime Access'),
+          _buildFeatureRow(primaryColor, Icons.military_tech, 'Certificate of Completion'),
+          const SizedBox(height: 100),
         ],
       ),
     );
@@ -398,153 +502,32 @@ class AboutTabView extends StatelessWidget {
       ),
     );
   }
-
-  Widget _buildReviewCard(
-    Color primaryColor,
-    String name,
-    String comment,
-    double rating,
-    int likes,
-    Color avatarColor,
-  ) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // User Image Placeholder
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: avatarColor,
-              shape: BoxShape.circle,
-            ),
-            margin: const EdgeInsets.only(right: 12),
-          ),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      name,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                    // Rating Bubble
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.blue.shade50,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.star, color: Colors.amber, size: 14),
-                          const SizedBox(width: 4),
-                          Text(
-                            rating.toString(),
-                            style: TextStyle(
-                              color: primaryColor,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  comment,
-                  style: const TextStyle(fontSize: 14, color: Colors.black87),
-                ),
-                const SizedBox(height: 8),
-                // Likes and Time
-                Row(
-                  children: [
-                    Icon(Icons.favorite, color: Colors.red.shade600, size: 16),
-                    const SizedBox(width: 4),
-                    Text(
-                      likes.toString(),
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    const Text(
-                      '2 Weeks Ago',
-                      style: TextStyle(fontSize: 14, color: Colors.grey),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 // ------------------------------------------------------------------
-// --- 3. CURRICULUM TAB VIEW ---
+// --- CURRICULUM TAB VIEW ---
 // ------------------------------------------------------------------
 
 class CurriculumTabView extends StatelessWidget {
+  final course;
   final Color primaryColor;
+  final Function(int) onVideoSelect;
 
-  CurriculumTabView({super.key, required this.primaryColor});
-
-  final List<Map<String, dynamic>> curriculum = const [
-    {
-      'type': 'section',
-      'title': 'Section 01 - Introducation',
-      'duration': '25 Mins',
-    },
-    {
-      'type': 'lesson',
-      'title': 'Why Using Graphic De..',
-      'duration': '15 Mins',
-      'number': 1,
-    },
-    {
-      'type': 'lesson',
-      'title': 'Setup Your Graphic De..',
-      'duration': '10 Mins',
-      'number': 2,
-    },
-    {
-      'type': 'section',
-      'title': 'Section 02 - Graphic Design',
-      'duration': '55 Mins',
-    },
-    {
-      'type': 'lesson',
-      'title': 'Why Using Graphic De..',
-      'duration': '15 Mins',
-      'number': 1,
-    },
-    {
-      'type': 'lesson',
-      'title': 'Setup Your Graphic De..',
-      'duration': '10 Mins',
-      'number': 2,
-    },
-  ];
+  const CurriculumTabView({
+    super.key,
+    required this.course,
+    required this.primaryColor,
+    required this.onVideoSelect,
+  });
 
   @override
   Widget build(BuildContext context) {
+    if (course.videoUrls.isEmpty) {
+      return const Center(
+        child: Text('No videos available for this course'),
+      );
+    }
+
     return ListView.builder(
       padding: const EdgeInsets.only(
         top: 8.0,
@@ -552,91 +535,65 @@ class CurriculumTabView extends StatelessWidget {
         left: 16.0,
         right: 16.0,
       ),
-      itemCount: curriculum.length,
+      itemCount: course.videoUrls.length,
       itemBuilder: (context, index) {
-        final item = curriculum[index];
-        if (item['type'] == 'section') {
-          return _buildSectionHeader(
-            item['title'] as String,
-            item['duration'] as String,
-          );
-        } else {
-          return _buildLessonRow(
-            primaryColor,
-            item['number'] as int,
-            item['title'] as String,
-            item['duration'] as String,
-          );
-        }
+        return _buildVideoLessonRow(
+          primaryColor,
+          index + 1,
+          'Video Lesson ${index + 1}',
+          course.videoUrls[index],
+        );
       },
     );
   }
 
-  Widget _buildSectionHeader(String title, String duration) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 20.0, bottom: 8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            title,
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
-          Text(
-            duration,
-            style: const TextStyle(fontSize: 14, color: Colors.grey),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLessonRow(
+  Widget _buildVideoLessonRow(
     Color color,
     int number,
     String title,
-    String duration,
+    String videoUrl,
   ) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10.0),
-      child: Row(
-        children: [
-          // Lesson Number Circle
-          Container(
-            width: 30,
-            height: 30,
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey.shade300, width: 2),
-              shape: BoxShape.circle,
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              number.toString(),
-              style: TextStyle(
-                color: color,
-                fontWeight: FontWeight.bold,
-                fontSize: 12,
+      child: InkWell(
+        onTap: () {
+          onVideoSelect(number - 1);
+          // Scroll to top to show video
+        },
+        child: Row(
+          children: [
+            Container(
+              width: 30,
+              height: 30,
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey.shade300, width: 2),
+                shape: BoxShape.circle,
+              ),
+              alignment: Alignment.center,
+              child: Text(
+                number.toString(),
+                style: TextStyle(
+                  color: color,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                ),
               ),
             ),
-          ),
-          const SizedBox(width: 12),
-          // Lesson Title and Duration
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: const TextStyle(fontSize: 16)),
-                const SizedBox(height: 2),
-                Text(
-                  duration,
-                  style: const TextStyle(fontSize: 12, color: Colors.grey),
-                ),
-              ],
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(fontSize: 16),
+                  ),
+                ],
+              ),
             ),
-          ),
-          // Play Button
-          Icon(Icons.play_circle_fill, color: color, size: 28),
-        ],
+            Icon(Icons.play_circle_fill, color: color, size: 28),
+          ],
+        ),
       ),
     );
   }

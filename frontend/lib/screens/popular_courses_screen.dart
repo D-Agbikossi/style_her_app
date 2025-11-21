@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+// Ensure the routes are imported for navigation
+import 'package:frontend/routes.dart';
 
 // --- Color Helpers ---
 Color hexToColor(String hexCode) {
@@ -17,6 +21,8 @@ final Color kCourseCardColor =
 // --- Data Models and Sample Data ---
 
 class Course {
+  // 🌟 NEW: Add ID for routing 🌟
+  final String id;
   final String category;
   final String title;
   final String price;
@@ -24,6 +30,7 @@ class Course {
   final int modules;
 
   const Course({
+    required this.id, // ID is now required
     required this.category,
     required this.title,
     required this.price,
@@ -41,8 +48,10 @@ final List<String> categories = [
   'Nail Care',
 ];
 
+// 🌟 UPDATED SAMPLE DATA with ID 🌟
 final List<Course> sampleCourses = [
   const Course(
+    id: 'C001',
     category: 'Hair Making',
     title: 'Fundamentals of Hair Making',
     price: '7058/-',
@@ -50,13 +59,15 @@ final List<Course> sampleCourses = [
     modules: 8,
   ),
   const Course(
+    id: 'C002',
     category: 'Hair Styling',
     title: 'Hair Styling 101',
-    price: r'$20', // Use r'$' for raw string if price is dollars
+    price: r'$20',
     rating: 3.9,
     modules: 12,
   ),
   const Course(
+    id: 'C003',
     category: 'Make Up',
     title: 'Introduction to Make Up',
     price: r'$20',
@@ -64,6 +75,7 @@ final List<Course> sampleCourses = [
     modules: 9,
   ),
   const Course(
+    id: 'C004',
     category: 'Nail Care',
     title: 'Acrylic Nails Tutorial',
     price: r'$25',
@@ -71,11 +83,12 @@ final List<Course> sampleCourses = [
     modules: 10,
   ),
   const Course(
+    id: 'C005',
     category: 'Hair Styling',
     title: 'Hair Styling Tricks',
     price: r'$67',
-    rating: 4.5, // Assumed rating
-    modules: 6, // Assumed modules
+    rating: 4.5,
+    modules: 6,
   ),
 ];
 
@@ -86,125 +99,140 @@ class CourseCard extends StatelessWidget {
 
   const CourseCard({super.key, required this.course});
 
+  // 🌟 WRAP CARD IN GESTURE DETECTOR FOR NAVIGATION 🌟
+  void _navigateToCourseDetails(BuildContext context) {
+    // Assuming AppRoutes.courseDetail is defined as '/course-detail'
+    Navigator.of(context).pushNamed(
+      AppRoutes.courseDetail,
+      arguments: course.id, // Pass the unique course ID
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 2.0,
-      color: kCourseCardColor,
-      margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Left: Placeholder for the Course Image/Thumbnail
-            Container(
-              width: 120,
-              height: 120,
-              decoration: BoxDecoration(
-                color: Colors.black, // Placeholder black color
-                borderRadius: BorderRadius.circular(8),
+    return GestureDetector(
+      onTap: () => _navigateToCourseDetails(context),
+      child: Card(
+        elevation: 2.0,
+        color: kCourseCardColor,
+        margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Left: Placeholder for the Course Image/Thumbnail
+              Container(
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(
+                  color: Colors.black, // Placeholder black color
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                // You would add an Image.network or Image.asset here
               ),
-              // You would add an Image.network or Image.asset here
-            ),
-            const SizedBox(width: 12),
+              const SizedBox(width: 12),
 
-            // Right: Course Details
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Row 1: Category & Bookmark Icon
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        course.category,
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey[600],
+              // Right: Course Details
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Row 1: Category & Bookmark Icon
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          course.category,
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey[600],
+                          ),
                         ),
+                        Icon(
+                          Icons.bookmark_border,
+                          color: kPrimaryBlue,
+                          size: 20,
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 4),
+
+                    // Row 2: Title
+                    Text(
+                      course.title,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1E1E1E),
                       ),
-                      Icon(
-                        Icons.bookmark_border,
+                    ),
+
+                    const SizedBox(height: 8),
+
+                    // Row 3: Price
+                    Text(
+                      course.price,
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
                         color: kPrimaryBlue,
-                        size: 20,
                       ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 4),
-
-                  // Row 2: Title
-                  Text(
-                    course.title,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF1E1E1E),
                     ),
-                  ),
 
-                  const SizedBox(height: 8),
+                    const SizedBox(height: 8),
 
-                  // Row 3: Price
-                  Text(
-                    course.price,
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: kPrimaryBlue,
+                    // Row 4: Rating & Modules
+                    Row(
+                      children: [
+                        // Rating Star and Value
+                        Icon(Icons.star, color: Colors.amber, size: 16),
+                        const SizedBox(width: 4),
+                        Text(
+                          course.rating.toString(),
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+
+                        const SizedBox(width: 12),
+
+                        // Separator
+                        Container(
+                          width: 1,
+                          height: 16,
+                          color: Colors.grey[300],
+                        ),
+
+                        const SizedBox(width: 12),
+
+                        // Modules Count
+                        Text(
+                          '${course.modules} Modules',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[600],
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-
-                  const SizedBox(height: 8),
-
-                  // Row 4: Rating & Modules
-                  Row(
-                    children: [
-                      // Rating Star and Value
-                      Icon(Icons.star, color: Colors.amber, size: 16),
-                      const SizedBox(width: 4),
-                      Text(
-                        course.rating.toString(),
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-
-                      const SizedBox(width: 12),
-
-                      // Separator
-                      Container(width: 1, height: 16, color: Colors.grey[300]),
-
-                      const SizedBox(width: 12),
-
-                      // Modules Count
-                      Text(
-                        '${course.modules} Modules',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[600],
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-// --- Category Chip Widget ---
-
+// --- Category Chip Widget (Unchanged) ---
 class CategoryChip extends StatelessWidget {
   final String category;
   final bool isSelected;
@@ -247,8 +275,7 @@ class CategoryChip extends StatelessWidget {
   }
 }
 
-// --- Main Popular Courses Screen Widget (Stateful for category selection) ---
-
+// --- Main Popular Courses Screen Widget (Unchanged) ---
 class PopularCoursesScreen extends StatefulWidget {
   const PopularCoursesScreen({super.key});
 
@@ -257,10 +284,8 @@ class PopularCoursesScreen extends StatefulWidget {
 }
 
 class _PopularCoursesScreenState extends State<PopularCoursesScreen> {
-  // 'All' is selected by default
   String _selectedCategory = categories.first;
 
-  // Filters the course list based on the selected category
   List<Course> get _filteredCourses {
     if (_selectedCategory == 'All') {
       return sampleCourses;
@@ -324,7 +349,9 @@ class _PopularCoursesScreenState extends State<PopularCoursesScreen> {
               itemCount: _filteredCourses.length,
               itemBuilder: (context, index) {
                 final course = _filteredCourses[index];
-                return CourseCard(course: course);
+                return CourseCard(
+                  course: course,
+                ); // Uses the tappable CourseCard
               },
             ),
           ),
