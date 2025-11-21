@@ -44,13 +44,28 @@ class AdminSetupService {
       // 2. Update user profile
       await user.updateDisplayName(displayName);
 
+      final now = FieldValue.serverTimestamp();
+      
       // 3. Create user document in Firestore with admin role
       await _firestore.collection('users').doc(user.uid).set({
         'email': email,
         'displayName': displayName,
         'role': 'admin', // This is the key field for admin access
-        'createdAt': FieldValue.serverTimestamp(),
-        'updatedAt': FieldValue.serverTimestamp(),
+        'createdAt': now,
+        'updatedAt': now,
+      });
+
+      // Also add to admin subcollection for organized querying
+      await _firestore
+          .collection('users')
+          .doc('_roles')
+          .collection('admin')
+          .doc(user.uid)
+          .set({
+        'email': email,
+        'displayName': displayName,
+        'createdAt': now,
+        'updatedAt': now,
       });
 
       return user.uid;
@@ -69,9 +84,28 @@ class AdminSetupService {
    */
   Future<bool> promoteToAdmin(String userId) async {
     try {
+      final now = FieldValue.serverTimestamp();
+      
+      // Update main user document
       await _firestore.collection('users').doc(userId).set({
         'role': 'admin',
-        'updatedAt': FieldValue.serverTimestamp(),
+        'updatedAt': now,
+      }, SetOptions(merge: true));
+
+      // Get user data to add to admin subcollection
+      final userDoc = await _firestore.collection('users').doc(userId).get();
+      final userData = userDoc.data();
+      
+      // Add to admin subcollection
+      await _firestore
+          .collection('users')
+          .doc('_roles')
+          .collection('admin')
+          .doc(userId)
+          .set({
+        'email': userData?['email'] ?? '',
+        'displayName': userData?['displayName'] ?? '',
+        'updatedAt': now,
       }, SetOptions(merge: true));
 
       return true;

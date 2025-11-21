@@ -1,38 +1,16 @@
 import 'package:flutter/material.dart';
 
-// --- MAIN APPLICATION WIDGET ---
-class CertificateApp extends StatelessWidget {
-  const CertificateApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Certificate View',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        scaffoldBackgroundColor: const Color(
-          0xFFF7F8FA,
-        ), // Light grey background
-        primarySwatch: Colors.blue,
-        appBarTheme: const AppBarTheme(
-          color: Colors.white,
-          elevation: 0,
-          titleTextStyle: TextStyle(
-            color: Colors.black,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-          iconTheme: IconThemeData(color: Colors.black),
-        ),
-      ),
-      home: const CertificateScreen(),
-    );
-  }
-}
-
 // --- 1. CERTIFICATE SCREEN (MAIN LAYOUT) ---
 class CertificateScreen extends StatelessWidget {
-  const CertificateScreen({super.key});
+  // 🌟 NEW: Accept Course ID (optional for standalone testing) and Recipient Name 🌟
+  final String courseId;
+  final String recipientName;
+
+  const CertificateScreen({
+    super.key,
+    this.courseId = 'C101', // Default ID for testing
+    this.recipientName = 'Alex', // Default Name
+  });
 
   // Define the primary blue color used for the design
   final Color primaryColor = const Color(0xFF5C7CEC);
@@ -42,15 +20,18 @@ class CertificateScreen extends StatelessWidget {
     // Determine the height of the certificate card as a fraction of screen height
     final double cardHeight = MediaQuery.of(context).size.height * 0.65;
 
+    // Simulate finding course title based on ID
+    final String courseTitle = 'Hair Making 101'; // Simplified lookup for demo
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor:
             Colors.transparent, // Transparent to blend with the background
         elevation: 0,
-        title: const Text('Hair Making 101'),
+        title: Text(courseTitle),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () {},
+          onPressed: () => Navigator.of(context).pop(),
         ),
       ),
       body: SingleChildScrollView(
@@ -61,7 +42,13 @@ class CertificateScreen extends StatelessWidget {
           bottom: 20,
         ),
         child: Center(
-          child: CertificateCard(height: cardHeight, cardColor: primaryColor),
+          child: CertificateCard(
+            height: cardHeight,
+            cardColor: primaryColor,
+            courseTitle: courseTitle, // Pass dynamic title
+            recipientName: recipientName, // Pass dynamic name
+            certificateId: courseId, // Pass dynamic ID
+          ),
         ),
       ),
       // --- 2. Fixed Bottom Button ---
@@ -92,11 +79,18 @@ class CertificateScreen extends StatelessWidget {
 class CertificateCard extends StatelessWidget {
   final double height;
   final Color cardColor;
+  // 🌟 NEW: Fields to accept data 🌟
+  final String courseTitle;
+  final String recipientName;
+  final String certificateId;
 
   const CertificateCard({
     super.key,
     required this.height,
     required this.cardColor,
+    required this.courseTitle,
+    required this.recipientName,
+    required this.certificateId,
   });
 
   @override
@@ -124,9 +118,17 @@ class CertificateCard extends StatelessWidget {
           ),
 
           // Certificate Content
-          const Padding(
-            padding: EdgeInsets.all(32.0),
-            child: Center(child: CertificateContent()),
+          Padding(
+            // Removed const here
+            padding: const EdgeInsets.all(32.0),
+            child: Center(
+              // 🌟 PASS DATA TO CONTENT WIDGET 🌟
+              child: CertificateContent(
+                courseTitle: courseTitle,
+                recipientName: recipientName,
+                certificateId: certificateId,
+              ),
+            ),
           ),
         ],
       ),
@@ -134,7 +136,7 @@ class CertificateCard extends StatelessWidget {
   }
 }
 
-// --- 4. CUSTOM CLIPPER FOR THE WAVY BACKGROUND SHAPE ---
+// --- 4. CUSTOM CLIPPER FOR THE WAVY BACKGROUND SHAPE (Unchanged) ---
 class CertificateClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
@@ -183,9 +185,19 @@ class CertificateClipper extends CustomClipper<Path> {
   bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
 }
 
-// --- 5. CERTIFICATE TEXT CONTENT ---
+// --- 5. CERTIFICATE TEXT CONTENT (UPDATED) ---
 class CertificateContent extends StatelessWidget {
-  const CertificateContent({super.key});
+  // 🌟 NEW: Fields to accept data 🌟
+  final String courseTitle;
+  final String recipientName;
+  final String certificateId;
+
+  const CertificateContent({
+    super.key,
+    required this.courseTitle,
+    required this.recipientName,
+    required this.certificateId,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -225,9 +237,9 @@ class CertificateContent extends StatelessWidget {
         const SizedBox(height: 8),
 
         // Recipient Name
-        const Text(
-          'Alex',
-          style: TextStyle(
+        Text(
+          recipientName, // 🌟 USE DYNAMIC NAME 🌟
+          style: const TextStyle(
             fontSize: 28,
             fontWeight: FontWeight.w900,
             color: Color(0xFF5C7CEC),
@@ -245,14 +257,14 @@ class CertificateContent extends StatelessWidget {
         const SizedBox(height: 24),
 
         // Course Name
-        const Text(
-          'Hair Making 101',
-          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+        Text(
+          courseTitle, // 🌟 USE DYNAMIC COURSE TITLE 🌟
+          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
           textAlign: TextAlign.center,
         ),
-        const Text(
-          'Issued on October 24, 2024\nID: SK24568086',
-          style: TextStyle(fontSize: 12, color: Colors.grey),
+        Text(
+          'Issued on October 24, 2024\nID: $certificateId', // 🌟 USE DYNAMIC ID 🌟
+          style: const TextStyle(fontSize: 12, color: Colors.grey),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 30),
@@ -260,10 +272,10 @@ class CertificateContent extends StatelessWidget {
         // Signature
         Container(height: 1, width: 180, color: Colors.black),
         const Text(
-          'Denaton Agbikossi', // Signature font is hard to replicate, using a unique one here.
+          'Denaton Agbikossi',
           style: TextStyle(
             fontSize: 32,
-            fontFamily: 'GreatVibes', // Placeholder for a script/signature font
+            fontFamily: 'GreatVibes',
             color: Colors.black87,
             height: 1.5,
           ),

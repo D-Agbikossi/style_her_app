@@ -45,8 +45,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   int _selectedIndex = 0; // Currently selected bottom navigation index
   
   // Statistics data
-  int _totalUsers = 0; // Total number of users
+  int _totalLearners = 0; // Total number of learners
   int _totalMentors = 0; // Total number of mentors
+  int _totalUsers = 0; // Total number of users (learners + mentors)
   int _totalVideos = 0; // Total number of courses/videos
   
   // Service instance
@@ -64,14 +65,15 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
 
   /**
    * Load statistics from Firebase
-   * Fetches counts for users, mentors, and courses
+   * Fetches counts for learners, mentors, and courses
    */
   Future<void> _loadStats() async {
     try {
       final stats = await _adminService.getStats();
       setState(() {
-        _totalUsers = stats['users'] ?? 0;
+        _totalLearners = stats['learners'] ?? 0;
         _totalMentors = stats['mentors'] ?? 0;
+        _totalUsers = stats['totalUsers'] ?? 0;
         _totalVideos = stats['courses'] ?? 0;
       });
     } catch (e) {
@@ -117,9 +119,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               child: Row(
                 children: [
                   CircleAvatar(
-                    radius: 16,
-                    backgroundColor: Colors.grey[300],
-                    child: const Icon(Icons.person, size: 20),
+                    radius: 20,
+                    backgroundColor: kPrimaryColor.withOpacity(0.1),
+                    child: Icon(Icons.person, size: 20, color: kPrimaryColor),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -129,10 +131,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                         const Text(
                           'Dashboard',
                           style: TextStyle(
-                            fontSize: 18,
+                            fontSize: 20,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
+                        const SizedBox(height: 2),
                         Text(
                           Provider.of<AdminAuthProvider>(context).user?.email ?? '',
                           style: TextStyle(
@@ -144,7 +147,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.logout),
+                    icon: const Icon(Icons.logout, color: Colors.grey),
+                    tooltip: 'Logout',
                     onPressed: () async {
                       await Provider.of<AdminAuthProvider>(context, listen: false).signOut();
                     },
@@ -156,30 +160,46 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             // Stats Cards
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Row(
+              child: Column(
                 children: [
-                  Expanded(
-                    child: _StatCard(
-                      title: 'Total Users',
-                      value: _totalUsers.toString(),
-                      color: kPrimaryColor,
-                    ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _StatCard(
+                          title: 'Learners',
+                          value: _totalLearners.toString(),
+                          color: kPrimaryColor,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _StatCard(
+                          title: 'Mentors',
+                          value: _totalMentors.toString(),
+                          color: kPrimaryColor,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _StatCard(
-                      title: 'Total Mentors',
-                      value: _totalMentors.toString(),
-                      color: kPrimaryColor,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _StatCard(
-                      title: 'Total Videos',
-                      value: _totalVideos.toString(),
-                      color: kPrimaryColor,
-                    ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _StatCard(
+                          title: 'Total Users',
+                          value: _totalUsers.toString(),
+                          color: kPrimaryColor,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _StatCard(
+                          title: 'Total Courses',
+                          value: _totalVideos.toString(),
+                          color: kPrimaryColor,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

@@ -1,5 +1,16 @@
+/**
+ * User Management Screen
+ * 
+ * This screen handles learner user management functionality including:
+ * - Display all learners with real-time updates
+ * - Search learners by name or email
+ * - Activate/disable and delete users
+ * - Real-time data synchronization with Firestore
+ */
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+
 import '../services/admin_service.dart';
 import '../main.dart';
 
@@ -136,14 +147,7 @@ class _UserScreenState extends State<UserScreen> {
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.person_add, color: Colors.black),
-            onPressed: () {
-              // TODO: Add user screen
-            },
-          ),
-        ],
+        actions: const [],
       ),
       body: Column(
         children: [

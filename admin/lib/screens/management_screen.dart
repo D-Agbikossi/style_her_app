@@ -1,5 +1,16 @@
+/**
+ * Category Management Screen
+ * 
+ * This screen handles category management functionality including:
+ * - Display all categories with real-time updates
+ * - Search categories by name
+ * - Create, edit, and delete categories
+ * - Real-time data synchronization with Firestore
+ */
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+
 import '../services/admin_service.dart';
 import '../main.dart';
 
@@ -13,7 +24,6 @@ class ManagementScreen extends StatefulWidget {
 class _ManagementScreenState extends State<ManagementScreen> {
   final TextEditingController _searchController = TextEditingController();
   final _adminService = AdminService();
-  String _searchQuery = '';
 
   @override
   void dispose() {
@@ -48,11 +58,7 @@ class _ManagementScreenState extends State<ManagementScreen> {
             padding: const EdgeInsets.all(16.0),
             child: TextField(
               controller: _searchController,
-              onChanged: (value) {
-                setState(() {
-                  _searchQuery = value;
-                });
-              },
+              onChanged: (_) => setState(() {}),
               decoration: InputDecoration(
                 hintText: 'Search categories...',
                 prefixIcon: const Icon(Icons.search),
@@ -79,10 +85,11 @@ class _ManagementScreenState extends State<ManagementScreen> {
                   return _EmptyState();
                 }
 
+                final searchQuery = _searchController.text.toLowerCase();
                 final categories = snapshot.data!.docs.where((doc) {
-                  if (_searchQuery.isEmpty) return true;
+                  if (searchQuery.isEmpty) return true;
                   final name = (doc.data() as Map<String, dynamic>)['name']?.toString().toLowerCase() ?? '';
-                  return name.contains(_searchQuery.toLowerCase());
+                  return name.contains(searchQuery);
                 }).toList();
 
                 if (categories.isEmpty) {
@@ -101,7 +108,6 @@ class _ManagementScreenState extends State<ManagementScreen> {
                       name: categoryName,
                       courseCount: data['courseCount'] ?? 0,
                       onEdit: () => _showEditCategoryDialog(context, doc.id, categoryName),
-                      onDelete: () {},
                     );
                   },
                 );
@@ -229,14 +235,12 @@ class _CategoryCard extends StatelessWidget {
   final String name;
   final int courseCount;
   final VoidCallback onEdit;
-  final VoidCallback onDelete;
 
   const _CategoryCard({
     required this.id,
     required this.name,
     required this.courseCount,
     required this.onEdit,
-    required this.onDelete,
   });
 
   Future<void> _deleteCategory(BuildContext context) async {
