@@ -18,7 +18,7 @@ import 'package:provider/provider.dart';
 import 'package:frontend/screens/login_screen.dart';
 
 // Provider imports
-import 'package:frontend/repositories/auth_repository.dart';
+import 'package:frontend/blocs/auth_bloc.dart';
 
 // Services imports
 import '../services/google_auth_service.dart';
@@ -111,7 +111,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       });
 
       try {
-        final authProvider = Provider.of<AuthProvider>(context, listen: false);
+        final authProvider = Provider.of<AuthBloc>(context, listen: false);
         await authProvider.signUp(
           _emailController.text.trim(),
           _passwordController.text.trim(),

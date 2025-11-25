@@ -46,7 +46,7 @@ class _CourseReviewScreenState extends State<CourseReviewScreen> {
 
   Future<void> _loadCourse() async {
     try {
-      final courseRepo = Provider.of(context, listen: false);
+      final courseRepo = Provider.of<CourseProvider>(context, listen: false);
       final course = await courseRepo.fetchCourseById(widget.courseId);
       
       if (mounted) {
