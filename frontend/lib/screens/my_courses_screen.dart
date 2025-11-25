@@ -1,6 +1,112 @@
 import 'package:flutter/material.dart';
-import '../theme_cubit.dart';
-import '../widgets/progress_bar.dart';
+// NOTE: Assuming AppRoutes is defined and imported correctly
+import 'package:frontend/routes.dart';
+
+// --- PLACEHOLDER CLASSES (Based on your context) ---
+// Define placeholder colors and radii
+class AppTheme {
+  static const Color primary = Color(0xFF5C7CEC); // A blue-purple primary color
+  static const Color text = Colors.black87;
+  static const Color softText = Colors.grey;
+  static const Color accentGreen = Color(
+    0xFFE9F5E8,
+  ); // Light green background from image
+  static const BorderRadius radius16 = BorderRadius.all(Radius.circular(16));
+}
+
+// Mock ProgressBar widget
+class ProgressBar extends StatelessWidget {
+  final double progress;
+  const ProgressBar({super.key, required this.progress});
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(10),
+      child: LinearProgressIndicator(
+        value: progress,
+        minHeight: 8,
+        backgroundColor: Colors.grey.shade200,
+        valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primary),
+      ),
+    );
+  }
+}
+// ----------------------------------------------------
+
+// --- DATA MODEL ---
+class MyCourse {
+  final String id;
+  final String category;
+  final String title;
+  final String duration;
+  final double rating;
+  final bool isCompleted;
+
+  const MyCourse({
+    required this.id,
+    required this.category,
+    required this.title,
+    required this.duration,
+    required this.rating,
+    required this.isCompleted,
+  });
+}
+
+// --- SAMPLE DATA ---
+final List<MyCourse> completedCourses = [
+  const MyCourse(
+    id: 'C101',
+    title: 'Hair Making 101',
+    category: 'Hair Making',
+    duration: '2 Hrs 36 Mins',
+    rating: 4.2,
+    isCompleted: true,
+  ),
+  const MyCourse(
+    id: 'C102',
+    title: 'Hair Making 101',
+    category: 'Hair Making',
+    duration: '3 Hrs 28 Mins',
+    rating: 4.7,
+    isCompleted: true,
+  ),
+  const MyCourse(
+    id: 'C103',
+    title: 'Hair Making 101',
+    category: 'Hair Making',
+    duration: '4 Hrs 05 Mins',
+    rating: 4.2,
+    isCompleted: true,
+  ),
+  const MyCourse(
+    id: 'C104',
+    title: 'Hair Making 101',
+    category: 'Hair Making',
+    duration: '5 Hrs 18 Mins',
+    rating: 4.7,
+    isCompleted: true,
+  ),
+];
+
+final List<MyCourse> ongoingCourses = [
+  const MyCourse(
+    id: 'C201',
+    title: 'Advanced Styling',
+    category: 'Hair Styling',
+    duration: '2 Hrs 46 Mins',
+    rating: 4.6,
+    isCompleted: false,
+  ),
+  const MyCourse(
+    id: 'C202',
+    title: 'Color Theory',
+    category: 'Hair Coloring',
+    duration: '1 Hrs 58 Mins',
+    rating: 4.9,
+    isCompleted: false,
+  ),
+];
 
 class MyCoursesScreen extends StatefulWidget {
   const MyCoursesScreen({super.key});
@@ -14,8 +120,15 @@ class _MyCoursesScreenState extends State<MyCoursesScreen>
 
   @override
   void initState() {
-    _tab = TabController(length: 2, vsync: this, initialIndex: 1);
+    // Initial index set to 0 to default to 'Completed' (based on the design image)
+    _tab = TabController(length: 2, vsync: this, initialIndex: 0);
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    _tab.dispose();
+    super.dispose();
   }
 
   @override
@@ -23,14 +136,18 @@ class _MyCoursesScreenState extends State<MyCoursesScreen>
     return Scaffold(
       appBar: AppBar(
         title: const Text('My Courses'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
         actions: const [
           Padding(
             padding: EdgeInsets.only(right: 16),
-            child: Icon(Icons.search),
+            child: Icon(Icons.search, color: Colors.black),
           ),
         ],
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(48),
+          preferredSize: const Size.fromHeight(64),
           child: Container(
             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
@@ -64,105 +181,166 @@ class _MyCoursesScreenState extends State<MyCoursesScreen>
       ),
       body: TabBarView(
         controller: _tab,
-        children: [_buildCourseList(completed: true), _buildCourseList()],
-      ),
-    );
-  }
-
-  Widget _buildCourseCard({
-    required String title,
-    required String category,
-    required String time,
-    required double progress,
-  }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: AppTheme.radius16,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(.06),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
         children: [
-          Container(
-            width: 78,
-            height: 58,
-            decoration: BoxDecoration(
-              color: Colors.black12,
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  category,
-                  style: const TextStyle(
-                    color: AppTheme.softText,
-                    fontSize: 12,
-                  ),
-                ),
-                Text(
-                  title,
-                  style: const TextStyle(fontWeight: FontWeight.w600),
-                ),
-                const SizedBox(height: 6),
-                Row(
-                  children: const [
-                    Icon(Icons.star, size: 14, color: Colors.amber),
-                    SizedBox(width: 2),
-                    Text('4.6', style: TextStyle(fontSize: 12)),
-                    SizedBox(width: 8),
-                    Icon(Icons.schedule, size: 14, color: AppTheme.softText),
-                    SizedBox(width: 2),
-                    Text(
-                      '2 hrs 46 mins',
-                      style: TextStyle(fontSize: 12, color: AppTheme.softText),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                ProgressBar(progress: progress),
-              ],
-            ),
-          ),
+          _buildCourseList(completedCourses, completed: true),
+          _buildCourseList(ongoingCourses, completed: false),
         ],
       ),
     );
   }
 
-  Widget _buildCourseList({bool completed = false}) {
-    return ListView(
+  // 🌟 MODIFIED: Course Card Widget to handle navigation and styling 🌟
+  Widget _buildCourseCard({
+    required MyCourse course,
+    required double progress,
+    required bool isCompleted,
+  }) {
+    // Background color based on completion status (green tint for completed)
+    final Color cardBackgroundColor = isCompleted
+        ? AppTheme.accentGreen
+        : Colors.white;
+
+    // 🌟 FIX: Determine the navigation route 🌟
+    // Completed goes to Certificate, Ongoing goes to Curriculum Detail
+    final String route = isCompleted
+        ? AppRoutes.certificate
+        : AppRoutes.curriculumDetail;
+
+    // Determine the argument format (Course ID)
+    final String argument = course.id;
+
+    return GestureDetector(
+      // 🌟 NAVIGATION: Handles the tap on the entire card 🌟
+      onTap: () {
+        Navigator.of(context).pushNamed(route, arguments: argument);
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: cardBackgroundColor,
+          borderRadius: AppTheme.radius16,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(.06),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            // Image Placeholder
+            Container(
+              width: 78,
+              height: 78, // Increased size for better fit
+              decoration: BoxDecoration(
+                color: Colors.black12,
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Category Text (Orange/Red tint from design)
+                  Text(
+                    course.category,
+                    style: TextStyle(
+                      color: Colors.orange.shade700,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    course.title,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+
+                  // Rating and Duration Row
+                  Row(
+                    children: [
+                      const Icon(Icons.star, size: 14, color: Colors.amber),
+                      const SizedBox(width: 2),
+                      Text(
+                        course.rating.toString(),
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                      const SizedBox(width: 8),
+                      // Separator
+                      Container(width: 1, height: 14, color: Colors.grey[300]),
+                      const SizedBox(width: 8),
+                      Text(
+                        course.duration,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppTheme.softText,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+
+                  // Action/Progress Section
+                  if (isCompleted)
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        // NOTE: Keeping this button visible but making the whole card tappable.
+                        onPressed: () {
+                          Navigator.of(context).pushNamed(
+                            AppRoutes.certificate,
+                            arguments: course.id,
+                          );
+                        },
+                        child: Text(
+                          'VIEW CERTIFICATE',
+                          style: TextStyle(
+                            color: Colors
+                                .green
+                                .shade700, // Matching the green accent
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    )
+                  else
+                    ProgressBar(progress: progress),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // 🌟 MODIFIED: Course List Widget to use the new model 🌟
+  Widget _buildCourseList(List<MyCourse> courses, {bool completed = false}) {
+    return ListView.builder(
       padding: const EdgeInsets.all(16),
-      children: [
-        _buildCourseCard(
-          title: 'Hair Making Fundamentals',
-          category: 'Hair Making',
-          time: '2h 46m',
-          progress: completed ? 1 : .56,
-        ),
-        _buildCourseCard(
-          title: 'Hair Making Fundamentals',
-          category: 'Hair Making',
-          time: '1h 58m',
-          progress: completed ? 1 : .29,
-        ),
-        _buildCourseCard(
-          title: 'Hair Making Fundamentals',
-          category: 'Hair Making',
-          time: '2h 05m',
-          progress: completed ? 1 : .75,
-        ),
-      ],
+      itemCount: courses.length,
+      itemBuilder: (context, index) {
+        final course = courses[index];
+        // Hardcode mock progress for ongoing courses for demonstration
+        final double progressValue = index == 0
+            ? 0.56
+            : index == 1
+            ? 0.29
+            : 0.75;
+
+        return _buildCourseCard(
+          course: course,
+          progress: completed ? 1.0 : progressValue,
+          isCompleted: completed,
+        );
+      },
     );
   }
 }
