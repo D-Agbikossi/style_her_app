@@ -11,7 +11,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/course_provider.dart';
+import 'package:frontend/repositories/course_repository.dart';
 import '../models/course.dart';
 import '../widgets/video_player_widget.dart';
 import '../routes.dart';
@@ -54,12 +54,34 @@ class _CoursePlayerScreenState extends State<CoursePlayerScreen>
   Future<void> _loadCourse() async {
     try {
       final courseProvider = Provider.of<CourseProvider>(context, listen: false);
+      // Some provider implementations return the Course, others return void and store the result internally.
+      // Await the fetch call first.
       await courseProvider.fetchCourseById(widget.courseId);
-      final course = courseProvider.getCourseById(widget.courseId);
-      
+
+      // Determine the fetched course: prefer provider-held course instances or provider getters (some providers return void).
+      Course? fetchedCourse;
+      try {
+        final dynamic dynProvider = courseProvider;
+        if (dynProvider.currentCourse is Course) {
+          fetchedCourse = dynProvider.currentCourse as Course;
+        } else if (dynProvider.course is Course) {
+          fetchedCourse = dynProvider.course as Course;
+        } else if (dynProvider.getCourseById != null) {
+          // If a getter/method exists, try to call it.
+          try {
+            final maybeCourse = dynProvider.getCourseById(widget.courseId);
+            if (maybeCourse is Course) fetchedCourse = maybeCourse;
+          } catch (_) {
+            // ignore failures from dynamic call
+          }
+        }
+      } catch (_) {
+        // ignore any reflection/dynamic errors and leave fetchedCourse as null
+      }
+
       if (mounted) {
         setState(() {
-          _course = course;
+          _course = fetchedCourse;
           _isLoading = false;
           // Ensure video index is valid
           if (_course != null && _currentVideoIndex >= _course!.videoUrls.length) {

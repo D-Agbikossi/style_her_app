@@ -9,16 +9,16 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
 import 'package:flutter/foundation.dart';
 
 import '../models/user_profile.dart';
-import '../repositories/auth_repository.dart';
+import 'package:frontend/repositories/auth_repository.dart';
 import '../services/firestore_service.dart';
 
-class AuthProvider with ChangeNotifier {
+class AuthBloc with ChangeNotifier {
   // Service dependencies for authentication and data storage
-  final AuthService _authService;
+  final AuthProvider _authService;
   final FirestoreService _firestore;
 
   // Current authentication and profile state
@@ -32,8 +32,8 @@ class AuthProvider with ChangeNotifier {
    * Constructor - Initialize provider and start listening to auth changes
    * Allows dependency injection for testing
    */
-  AuthProvider({AuthService? authService, FirestoreService? firestore})
-    : _authService = authService ?? AuthService(),
+  AuthBloc({AuthProvider? authService, FirestoreService? firestore})
+    : _authService = authService ?? AuthProvider(),
       _firestore = firestore ?? FirestoreService() {
     // Listen to authentication state changes
     _authSub = _authService.authStateChanges().listen(_onAuthChange);

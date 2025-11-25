@@ -10,7 +10,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../routes.dart';
-import '../providers/auth_provider.dart';
+import 'package:frontend/repositories/auth_repository.dart';
 import 'edit_profile.dart';
 
 const Color kPrimaryColor = Color(0xFF2C5BB1); // Main brand blue

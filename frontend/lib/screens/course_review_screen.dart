@@ -10,7 +10,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/course_provider.dart';
+import 'package:frontend/repositories/course_repository.dart';
 import '../models/course.dart';
 import '../routes.dart';
 
@@ -46,9 +46,8 @@ class _CourseReviewScreenState extends State<CourseReviewScreen> {
 
   Future<void> _loadCourse() async {
     try {
-      final courseProvider = Provider.of<CourseProvider>(context, listen: false);
-      await courseProvider.fetchCourseById(widget.courseId);
-      final course = courseProvider.getCourseById(widget.courseId);
+      final courseRepo = Provider.of(context, listen: false);
+      final course = await courseRepo.fetchCourseById(widget.courseId);
       
       if (mounted) {
         setState(() {

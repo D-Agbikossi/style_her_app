@@ -16,7 +16,7 @@ import 'package:provider/provider.dart';
 import 'package:frontend/routes.dart';
 
 // Provider imports
-import 'package:frontend/providers/auth_provider.dart';
+import 'package:frontend/repositories/course_repository.dart';
 
 // Services imports
 import '../services/google_auth_service.dart';
@@ -76,7 +76,7 @@ class _LoginScreenState extends State<LoginScreen> {
       });
 
       try {
-        final authProvider = Provider.of<AuthProvider>(context, listen: false);
+        final authProvider = Provider.of<dynamic>(context, listen: false);
         await authProvider.signIn(
           _emailController.text.trim(),
           _passwordController.text.trim(),
