@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../theme.dart';
+import '../theme_cubit.dart';
 
 class BadgeChip extends StatelessWidget {
   final String label;
@@ -13,7 +13,10 @@ class BadgeChip extends StatelessWidget {
         color: AppTheme.accent,
         borderRadius: BorderRadius.circular(24),
       ),
-      child: Text(label, style: const TextStyle(fontSize: 12, color: AppTheme.text)),
+      child: Text(
+        label,
+        style: const TextStyle(fontSize: 12, color: AppTheme.text),
+      ),
     );
   }
 }

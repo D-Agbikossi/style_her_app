@@ -13,7 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 // Provider imports
-import '../providers/auth_provider.dart';
+import '../blocs/auth_bloc.dart';
 import '../utils/validators.dart';
 
 // Theme imports

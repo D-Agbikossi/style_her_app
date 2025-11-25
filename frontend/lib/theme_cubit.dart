@@ -17,8 +17,16 @@ class AppTheme {
       primaryColor: primary,
       fontFamily: 'Roboto',
       textTheme: const TextTheme(
-        headlineSmall: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: text),
-        titleMedium: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: text),
+        headlineSmall: TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.w700,
+          color: text,
+        ),
+        titleMedium: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+          color: text,
+        ),
         bodyMedium: TextStyle(fontSize: 14, color: text),
         bodySmall: TextStyle(fontSize: 12, color: softText),
       ),
@@ -28,7 +36,9 @@ class AppTheme {
         foregroundColor: text,
         centerTitle: false,
       ),
-      colorScheme: ColorScheme.fromSeed(seedColor: primary).copyWith(background: background),
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: primary,
+      ).copyWith(background: background),
     );
   }
 }

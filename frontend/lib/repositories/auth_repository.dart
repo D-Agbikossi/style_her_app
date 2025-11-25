@@ -32,7 +32,10 @@ class AuthService {
    * Returns UserCredential on success, throws error on failure
    */
   Future<UserCredential> signInWithEmail(String email, String password) async {
-    return await _auth.signInWithEmailAndPassword(email: email, password: password);
+    return await _auth.signInWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
   }
 
   /**
@@ -40,7 +43,10 @@ class AuthService {
    * Returns UserCredential on success, throws error on failure
    */
   Future<UserCredential> signUpWithEmail(String email, String password) async {
-    return await _auth.createUserWithEmailAndPassword(email: email, password: password);
+    return await _auth.createUserWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
   }
 
   /**
