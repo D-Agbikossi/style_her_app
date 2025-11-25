@@ -44,7 +44,7 @@ class MyApp extends StatelessWidget {
     // Set up providers for state management
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => AuthBloc()),
         ChangeNotifierProvider(create: (_) => CourseProvider()),
       ],
       child: MaterialApp(

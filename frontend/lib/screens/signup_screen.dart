@@ -18,7 +18,7 @@ import 'package:provider/provider.dart';
 import 'package:frontend/screens/login_screen.dart';
 
 // Provider imports
-import 'package:frontend/providers/auth_provider.dart';
+import 'package:frontend/repositories/auth_repository.dart';
 
 // Services imports
 import '../services/google_auth_service.dart';

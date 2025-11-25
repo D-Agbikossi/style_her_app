@@ -181,7 +181,7 @@ class _HomeScreenState extends State<HomeScreen> {
    * Build the header section with user greeting and notification icon
    */
   Widget _buildHeader() {
-    final authProvider = Provider.of<AuthProvider>(context);
+    final authProvider = Provider.of<AuthBloc>(context);
     final userName = authProvider.profile?.displayName ?? 'User';
     final firstName = userName.split(' ').first;
 

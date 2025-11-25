@@ -37,7 +37,7 @@ class EmailVerificationScreen extends StatelessWidget {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () async {
-                    final authProvider = Provider.of<AuthProvider>(
+                    final authProvider = Provider.of<AuthBloc>(
                       context,
                       listen: false,
                     );
@@ -68,7 +68,7 @@ class EmailVerificationScreen extends StatelessWidget {
               const SizedBox(height: 20),
               TextButton(
                 onPressed: () async {
-                  final authProvider = Provider.of<AuthProvider>(
+                  final authProvider = Provider.of<AuthBloc>(
                     context,
                     listen: false,
                   );
@@ -85,7 +85,7 @@ class EmailVerificationScreen extends StatelessWidget {
               const SizedBox(height: 20),
               TextButton(
                 onPressed: () async {
-                  final authProvider = Provider.of<AuthProvider>(
+                  final authProvider = Provider.of<AuthBloc>(
                     context,
                     listen: false,
                   );
