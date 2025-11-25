@@ -10,7 +10,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../routes.dart';
-import 'package:frontend/repositories/auth_repository.dart';
+import 'package:frontend/blocs/auth_bloc.dart';
 import 'edit_profile.dart';
 
 const Color kPrimaryColor = Color(0xFF2C5BB1); // Main brand blue
@@ -24,7 +24,7 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = Provider.of<AuthProvider>(context);
+    final authProvider = Provider.of<AuthBloc>(context);
     final user = authProvider.user;
     final profile = authProvider.profile;
 
@@ -50,11 +50,12 @@ class ProfileScreen extends StatelessWidget {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.settings, color: Colors.black),
+            icon: const Icon(Icons.edit, color: Colors.black),
             onPressed: () {
-              // TODO: Navigate to settings screen
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Settings screen coming soon')),
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const EditProfileScreen(),
+                ),
               );
             },
           ),
