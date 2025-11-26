@@ -9,42 +9,44 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
 import 'package:flutter/foundation.dart';
 
 import '../models/user_profile.dart';
-import '../services/auth_service.dart';
+import 'package:frontend/repositories/auth_repository.dart';
 import '../services/firestore_service.dart';
 
-class AuthProvider with ChangeNotifier {
+class AuthBloc with ChangeNotifier {
   // Service dependencies for authentication and data storage
-  final AuthService _authService;
+  final AuthProvider _authService;
   final FirestoreService _firestore;
 
   // Current authentication and profile state
-  User? _firebaseUser;                                    // Firebase authentication user
-  UserProfile? _profile;                                  // User profile data from Firestore
-  StreamSubscription<User?>? _authSub;                    // Auth state subscription
-  StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _profileSub; // Profile data subscription
+  User? _firebaseUser; // Firebase authentication user
+  UserProfile? _profile; // User profile data from Firestore
+  StreamSubscription<User?>? _authSub; // Auth state subscription
+  StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>?
+  _profileSub; // Profile data subscription
 
   /**
    * Constructor - Initialize provider and start listening to auth changes
    * Allows dependency injection for testing
    */
-  AuthProvider({AuthService? authService, FirestoreService? firestore})
-      : _authService = authService ?? AuthService(),
-        _firestore = firestore ?? FirestoreService() {
+  AuthBloc({AuthProvider? authService, FirestoreService? firestore})
+    : _authService = authService ?? AuthProvider(),
+      _firestore = firestore ?? FirestoreService() {
     // Listen to authentication state changes
     _authSub = _authService.authStateChanges().listen(_onAuthChange);
   }
 
   // Getters for current authentication state
-  User? get user => _firebaseUser;                        // Current Firebase user
-  UserProfile? get profile => _profile;                   // Current user profile
-  bool get isAuthenticated => _firebaseUser != null;        // User logged in status
-  bool get isEmailVerified => _firebaseUser?.emailVerified ?? false; // Email verification status
+  User? get user => _firebaseUser; // Current Firebase user
+  UserProfile? get profile => _profile; // Current user profile
+  bool get isAuthenticated => _firebaseUser != null; // User logged in status
+  bool get isEmailVerified =>
+      _firebaseUser?.emailVerified ?? false; // Email verification status
 
-/**
+  /**
    * Sign in with email and password
    * Delegates to AuthService for Firebase authentication
    */
@@ -56,16 +58,20 @@ class AuthProvider with ChangeNotifier {
    * Sign up new user with email and password
    * Creates user account, sets up profile in Firestore, and sends verification email
    */
-  Future<void> signUp(String email, String password, {String? displayName}) async {
+  Future<void> signUp(
+    String email,
+    String password, {
+    String? displayName,
+  }) async {
     // Create user account with Firebase Auth
     final cred = await _authService.signUpWithEmail(email, password);
-    
+
     // Create user profile in Firestore
     await _firestore.createOrUpdateUser(cred.user!.uid, {
       'email': email,
       if (displayName != null) 'displayName': displayName,
     });
-    
+
     // Send email verification
     await _authService.sendEmailVerification();
   }
@@ -82,7 +88,8 @@ class AuthProvider with ChangeNotifier {
    * Send password reset email
    * Delegates to AuthService for Firebase password reset functionality
    */
-  Future<void> resetPassword(String email) => _authService.sendPasswordResetEmail(email);
+  Future<void> resetPassword(String email) =>
+      _authService.sendPasswordResetEmail(email);
 
   /**
    * Resend email verification
@@ -92,7 +99,7 @@ class AuthProvider with ChangeNotifier {
     await _authService.sendEmailVerification();
   }
 
-/**
+  /**
    * Handle authentication state changes
    * Updates user state and manages profile data subscription
    */

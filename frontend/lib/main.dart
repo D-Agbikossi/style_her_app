@@ -9,11 +9,11 @@ import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
 import 'firebase_options.dart';
-import 'providers/auth_provider.dart';
-import 'providers/course_provider.dart';
+import 'blocs/auth_bloc.dart';
+import 'repositories/course_repository.dart';
 import 'routes.dart';
 import 'screens/onboarding_screen.dart';
-import 'theme.dart';
+import 'theme_cubit.dart';
 import 'screens/email_verification_screen.dart';
 import 'screens/home_screen.dart';
 
@@ -44,12 +44,8 @@ class MyApp extends StatelessWidget {
     // Set up providers for state management
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(
-          create: (_) => AuthProvider(),
-        ),
-        ChangeNotifierProvider(
-          create: (_) => CourseProvider(),
-        ),
+        ChangeNotifierProvider(create: (_) => AuthBloc()),
+        ChangeNotifierProvider(create: (_) => CourseProvider()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

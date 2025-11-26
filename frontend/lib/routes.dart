@@ -15,6 +15,8 @@ import 'screens/mentor_info_screen.dart';
 import 'screens/course_detail_screen.dart';
 // 🌟 IMPORT THE CERTIFICATE SCREEN 🌟
 import 'screens/course_certification_screen.dart';
+// 🌟 IMPORT THE CURRICULUM DETAIL SCREEN 🌟
+import 'screens/curriculum_detail.dart';
 
 class AppRoutes {
   static const String root = '/';
@@ -31,11 +33,13 @@ class AppRoutes {
   static const String notifications = '/notifications';
   static const String mentorProfile = '/mentor-profile';
   static const String courseDetail = '/course-detail';
-  // 🌟 FIX: ADD MISSING CERTIFICATE ROUTE CONSTANT 🌟
+  // FIX: ADD MISSING CERTIFICATE ROUTE CONSTANT
   static const String certificate = '/certificate';
   static const String inbox = '/inbox';
   static const String marketplace = '/marketplace';
   static const String profile = '/profile';
+  // 🌟 FIX: ADD MISSING CURRICULUM DETAIL ROUTE CONSTANT 🌟
+  static const String curriculumDetail = '/curriculum-detail';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     final args = settings.arguments;
@@ -84,10 +88,9 @@ class AppRoutes {
           const Scaffold(body: Center(child: Text('Course ID missing'))),
         );
 
-      // 🌟 FIX: ADD CERTIFICATE ROUTE HANDLER 🌟
+      // FIX: ADD CERTIFICATE ROUTE HANDLER
       case certificate:
         if (args is String) {
-          // Expecting Course ID
           // NOTE: We hardcode 'Alex' for recipientName since we don't have user data here.
           return _buildRoute(
             settings,
@@ -97,6 +100,17 @@ class AppRoutes {
         return _buildRoute(
           settings,
           const Scaffold(body: Center(child: Text('Certificate ID missing'))),
+        );
+
+      // 🌟 ADD CURRICULUM DETAIL ROUTE HANDLER 🌟
+      case curriculumDetail:
+        if (args is String) {
+          // Pass the course ID to the curriculum screen
+          return _buildRoute(settings, CurriculumDetailScreen(courseId: args));
+        }
+        return _buildRoute(
+          settings,
+          const Scaffold(body: Center(child: Text('Curriculum ID missing'))),
         );
 
       default:

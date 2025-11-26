@@ -10,7 +10,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import '../providers/course_provider.dart';
+import '../repositories/course_repository.dart';
 import '../widgets/video_player_widget.dart';
 import '../widgets/image_gallery_widget.dart';
 import '../models/course.dart';
@@ -38,8 +38,10 @@ class _CourseDetailsScreenState extends State<CourseDetailsScreen> {
     super.initState();
     if (widget.courseId != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        Provider.of<CourseProvider>(context, listen: false)
-            .fetchCourseById(widget.courseId!);
+        Provider.of<CourseProvider>(
+          context,
+          listen: false,
+        ).fetchCourseById(widget.courseId!);
         _checkEnrollmentStatus();
       });
     }
@@ -214,10 +216,7 @@ class _CourseDetailsScreenState extends State<CourseDetailsScreen> {
           },
           body: TabBarView(
             children: [
-              AboutTabView(
-                course: course,
-                primaryColor: primaryColor,
-              ),
+              AboutTabView(course: course, primaryColor: primaryColor),
               CurriculumTabView(
                 course: course,
                 primaryColor: primaryColor,
@@ -263,15 +262,17 @@ class _CourseDetailsScreenState extends State<CourseDetailsScreen> {
                           width: 20,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.white,
+                            ),
                           ),
                         )
                       : Text(
                           _isEnrolled
                               ? 'Enrolled'
                               : course.isFree
-                                  ? 'Enroll Free'
-                                  : '\$${course.price?.toStringAsFixed(2)} Enroll',
+                              ? 'Enroll Free'
+                              : '\$${course.price?.toStringAsFixed(2)} Enroll',
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -322,8 +323,8 @@ class _CourseDetailsScreenState extends State<CourseDetailsScreen> {
     }
 
     // Ensure selected index is within bounds
-    final validIndex = _selectedVideoIndex < course.videoUrls.length 
-        ? _selectedVideoIndex 
+    final validIndex = _selectedVideoIndex < course.videoUrls.length
+        ? _selectedVideoIndex
         : 0;
 
     return VideoPlayerWidget(
@@ -342,7 +343,7 @@ class _CourseDetailsScreenState extends State<CourseDetailsScreen> {
 
     try {
       final success = await _enrollmentService.enrollInCourse(widget.courseId!);
-      
+
       if (mounted) {
         setState(() {
           _isEnrolling = false;
@@ -407,7 +408,11 @@ class AboutTabView extends StatelessWidget {
           // Course Description
           Text(
             course.description,
-            style: const TextStyle(fontSize: 15, height: 1.4, color: Colors.black87),
+            style: const TextStyle(
+              fontSize: 15,
+              height: 1.4,
+              color: Colors.black87,
+            ),
           ),
           const Divider(height: 32),
 
@@ -476,11 +481,31 @@ class AboutTabView extends StatelessWidget {
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 12),
-          _buildFeatureRow(primaryColor, Icons.description, '${course.lessonCount} Lessons'),
-          _buildFeatureRow(primaryColor, Icons.devices, 'Access Mobile, Desktop'),
-          _buildFeatureRow(primaryColor, Icons.speed, '${course.difficulty} Level'),
-          _buildFeatureRow(primaryColor, Icons.watch_later_outlined, 'Lifetime Access'),
-          _buildFeatureRow(primaryColor, Icons.military_tech, 'Certificate of Completion'),
+          _buildFeatureRow(
+            primaryColor,
+            Icons.description,
+            '${course.lessonCount} Lessons',
+          ),
+          _buildFeatureRow(
+            primaryColor,
+            Icons.devices,
+            'Access Mobile, Desktop',
+          ),
+          _buildFeatureRow(
+            primaryColor,
+            Icons.speed,
+            '${course.difficulty} Level',
+          ),
+          _buildFeatureRow(
+            primaryColor,
+            Icons.watch_later_outlined,
+            'Lifetime Access',
+          ),
+          _buildFeatureRow(
+            primaryColor,
+            Icons.military_tech,
+            'Certificate of Completion',
+          ),
           const SizedBox(height: 100),
         ],
       ),
@@ -523,9 +548,7 @@ class CurriculumTabView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (course.videoUrls.isEmpty) {
-      return const Center(
-        child: Text('No videos available for this course'),
-      );
+      return const Center(child: Text('No videos available for this course'));
     }
 
     return ListView.builder(
@@ -583,12 +606,7 @@ class CurriculumTabView extends StatelessWidget {
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(fontSize: 16),
-                  ),
-                ],
+                children: [Text(title, style: const TextStyle(fontSize: 16))],
               ),
             ),
             Icon(Icons.play_circle_fill, color: color, size: 28),

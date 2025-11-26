@@ -1,7 +1,7 @@
 /**
- * Authentication Service
+ * Authentication Provider
  * 
- * This service handles all Firebase authentication operations:
+ * This provider handles all Firebase authentication operations:
  * - User sign in with email/password
  * - User registration with email/password
  * - Email verification
@@ -11,8 +11,9 @@
  */
 
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 
-class AuthService {
+class AuthProvider extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   /**
@@ -25,14 +26,23 @@ class AuthService {
    * Get currently signed in user
    * Returns null if no user is signed in
    */
+  User? get user => _auth.currentUser;
   User? get currentUser => _auth.currentUser;
+  
+  /**
+   * Get user profile (placeholder for now)
+   */
+  dynamic get profile => null;
 
   /**
    * Sign in user with email and password
    * Returns UserCredential on success, throws error on failure
    */
   Future<UserCredential> signInWithEmail(String email, String password) async {
-    return await _auth.signInWithEmailAndPassword(email: email, password: password);
+    return await _auth.signInWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
   }
 
   /**
@@ -40,7 +50,18 @@ class AuthService {
    * Returns UserCredential on success, throws error on failure
    */
   Future<UserCredential> signUpWithEmail(String email, String password) async {
-    return await _auth.createUserWithEmailAndPassword(email: email, password: password);
+    return await _auth.createUserWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
+  }
+
+  /**
+   * Sign up method expected by screens
+   */
+  Future<void> signUp(String email, String password, {String? displayName}) async {
+    await signUpWithEmail(email, password);
+    notifyListeners();
   }
 
   /**
@@ -60,6 +81,7 @@ class AuthService {
    */
   Future<void> signOut() async {
     await _auth.signOut();
+    notifyListeners();
   }
 
   /**

@@ -16,8 +16,8 @@ import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'dart:async';
 
 // Provider imports
-import '../providers/auth_provider.dart';
-import '../providers/course_provider.dart';
+import '../blocs/auth_bloc.dart';
+import '../repositories/course_repository.dart';
 import '../routes.dart';
 
 const Color kPrimaryColor = Color(0xFF2C5BB1); // Main brand blue
@@ -181,7 +181,7 @@ class _HomeScreenState extends State<HomeScreen> {
    * Build the header section with user greeting and notification icon
    */
   Widget _buildHeader() {
-    final authProvider = Provider.of<AuthProvider>(context);
+    final authProvider = Provider.of<AuthBloc>(context);
     final userName = authProvider.profile?.displayName ?? 'User';
     final firstName = userName.split(' ').first;
 
