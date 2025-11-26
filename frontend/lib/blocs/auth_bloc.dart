@@ -1,7 +1,6 @@
 /**
  * Authentication Provider
- * 
- * Manages user authentication state and user profile data.
+ * * Manages user authentication state and user profile data.
  * Provides methods for sign-in, sign-up, sign-out, and password reset.
  * Listens to authentication state changes and user profile updates.
  */
@@ -74,6 +73,27 @@ class AuthBloc with ChangeNotifier {
 
     // Send email verification
     await _authService.sendEmailVerification();
+  }
+
+  /**
+   * Update User Profile
+   */
+  Future<void> updateUserProfile({
+    required String name,
+    required String nickname,
+    required String dob,
+    required String gender,
+  }) async {
+    final user = _firebaseUser;
+    if (user != null) {
+      await _firestore.createOrUpdateUser(user.uid, {
+        'name': name,
+        'displayName': name,
+        'nickname': nickname,
+        'dob': dob,
+        'gender': gender,
+      });
+    }
   }
 
   /**
