@@ -41,6 +41,9 @@ dependencies:
   provider: ^6.1.5+1
   image_picker: ^1.1.2
   file_picker: ^8.1.4
+  # Cloudinary for media storage (alternative to Firebase Storage)
+  http: ^1.2.0
+  crypto: ^3.0.3
 
 dev_dependencies:
   flutter_test:
