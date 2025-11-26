@@ -18,10 +18,12 @@ import '../models/course.dart';
 
 // Service imports
 import '../services/admin_service.dart';
+import '../services/unified_storage_service.dart';
 
 // Utils imports
 import '../utils/validators.dart';
 import '../utils/error_handler.dart';
+import 'package:image_picker/image_picker.dart';
 
 // Theme imports
 import '../main.dart';
@@ -47,6 +49,7 @@ class _AddEditCourseScreenState extends State<AddEditCourseScreen> {
   // Form state
   final _formKey = GlobalKey<FormState>();
   final _adminService = AdminService();
+  final _storage = UnifiedStorageService(provider: StorageProvider.cloudinary);
   
   // Form controllers
   final _titleController = TextEditingController();
@@ -64,10 +67,16 @@ class _AddEditCourseScreenState extends State<AddEditCourseScreen> {
   // Note: File uploads removed - using URL-only approach
 
   // Selection state
-  String _selectedCategory = 'Make Up';
+  String? _selectedCategory; // Nullable to handle async loading
   String _selectedDifficulty = 'Beginner';
   bool _isFree = false;
   bool _isLoading = false;
+  bool _isUploadingThumbnail = false;
+  Map<int, bool> _uploadingVideos = {};
+  Map<int, bool> _uploadingPictures = {};
+  double _thumbnailUploadProgress = 0.0;
+  Map<int, double> _videoUploadProgress = {};
+  Map<int, double> _pictureUploadProgress = {};
   List<String> _categories = ['Make Up', 'Hair Styling', 'Hair Making', 'Nail Care', 'Arts'];
 
 
@@ -76,8 +85,18 @@ class _AddEditCourseScreenState extends State<AddEditCourseScreen> {
     if (categories.isNotEmpty) {
       setState(() {
         _categories = categories;
+        // Set selected category if editing, otherwise use first category
         if (widget.course != null && _categories.contains(widget.course!.category)) {
           _selectedCategory = widget.course!.category;
+        } else if (_selectedCategory == null || !_categories.contains(_selectedCategory)) {
+          _selectedCategory = _categories.first;
+        }
+      });
+    } else {
+      // If no categories from Firestore, ensure default is set
+      setState(() {
+        if (_selectedCategory == null || !_categories.contains(_selectedCategory)) {
+          _selectedCategory = _categories.first;
         }
       });
     }
@@ -98,24 +117,36 @@ class _AddEditCourseScreenState extends State<AddEditCourseScreen> {
     
     // Populate video URLs
     _videoUrlControllers.clear();
+    _uploadingVideos.clear();
+    _videoUploadProgress.clear();
     if (course.videoUrls.isNotEmpty) {
-      for (var url in course.videoUrls) {
-        final controller = TextEditingController(text: url);
+      for (int i = 0; i < course.videoUrls.length; i++) {
+        final controller = TextEditingController(text: course.videoUrls[i]);
         _videoUrlControllers.add(controller);
+        _uploadingVideos[i] = false;
+        _videoUploadProgress[i] = 0.0;
       }
     } else {
       _videoUrlControllers.add(TextEditingController());
+      _uploadingVideos[0] = false;
+      _videoUploadProgress[0] = 0.0;
     }
     
     // Populate picture URLs
     _pictureUrlControllers.clear();
+    _uploadingPictures.clear();
+    _pictureUploadProgress.clear();
     if (course.pictureUrls.isNotEmpty) {
-      for (var url in course.pictureUrls) {
-        final controller = TextEditingController(text: url);
+      for (int i = 0; i < course.pictureUrls.length; i++) {
+        final controller = TextEditingController(text: course.pictureUrls[i]);
         _pictureUrlControllers.add(controller);
+        _uploadingPictures[i] = false;
+        _pictureUploadProgress[i] = 0.0;
       }
     } else {
       _pictureUrlControllers.add(TextEditingController());
+      _uploadingPictures[0] = false;
+      _pictureUploadProgress[0] = 0.0;
     }
   }
 
@@ -129,6 +160,11 @@ class _AddEditCourseScreenState extends State<AddEditCourseScreen> {
       // Initialize with one empty field for new course
       _videoUrlControllers.add(TextEditingController());
       _pictureUrlControllers.add(TextEditingController());
+      // Initialize upload state for initial fields
+      _uploadingVideos[0] = false;
+      _videoUploadProgress[0] = 0.0;
+      _uploadingPictures[0] = false;
+      _pictureUploadProgress[0] = 0.0;
     }
   }
 
@@ -278,7 +314,7 @@ class _AddEditCourseScreenState extends State<AddEditCourseScreen> {
       final courseData = <String, dynamic>{
         'title': _titleController.text.trim(),
         'description': _descriptionController.text.trim(),
-        'category': _selectedCategory,
+        'category': _selectedCategory ?? _categories.first,
         'difficulty': _selectedDifficulty,
         'instructor': _instructorController.text.trim(),
         'thumbnailUrl': thumbnailUrl,
@@ -361,7 +397,156 @@ class _AddEditCourseScreenState extends State<AddEditCourseScreen> {
     }
   }
 
-  // File upload methods removed - using URL-only approach
+  /// Upload thumbnail image
+  Future<void> _uploadThumbnail() async {
+    try {
+      final file = await _storage.pickImage(ImageSource.gallery);
+      if (file == null) return;
+
+      setState(() {
+        _isUploadingThumbnail = true;
+        _thumbnailUploadProgress = 0.0;
+      });
+
+      final url = await _storage.uploadFile(
+        file: file,
+        path: 'courses/thumbnails',
+        onProgress: (progress) {
+          if (mounted) {
+            setState(() {
+              _thumbnailUploadProgress = progress;
+            });
+          }
+        },
+      );
+
+      if (mounted) {
+        setState(() {
+          _thumbnailUrlController.text = url;
+          _isUploadingThumbnail = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Thumbnail uploaded successfully!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isUploadingThumbnail = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Upload failed: ${ErrorHandler.getUserFriendlyMessage(e)}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  /// Upload video at specific index
+  Future<void> _uploadVideo(int index) async {
+    try {
+      final file = await _storage.pickVideo(ImageSource.gallery);
+      if (file == null) return;
+
+      setState(() {
+        _uploadingVideos[index] = true;
+        _videoUploadProgress[index] = 0.0;
+      });
+
+      final url = await _storage.uploadFile(
+        file: file,
+        path: 'courses/videos',
+        resourceType: 'video',
+        onProgress: (progress) {
+          if (mounted) {
+            setState(() {
+              _videoUploadProgress[index] = progress;
+            });
+          }
+        },
+      );
+
+      if (mounted) {
+        setState(() {
+          _videoUrlControllers[index].text = url;
+          _uploadingVideos[index] = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Video uploaded successfully!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _uploadingVideos[index] = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Upload failed: ${ErrorHandler.getUserFriendlyMessage(e)}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  /// Upload picture at specific index
+  Future<void> _uploadPicture(int index) async {
+    try {
+      final file = await _storage.pickImage(ImageSource.gallery);
+      if (file == null) return;
+
+      setState(() {
+        _uploadingPictures[index] = true;
+        _pictureUploadProgress[index] = 0.0;
+      });
+
+      final url = await _storage.uploadFile(
+        file: file,
+        path: 'courses/pictures',
+        onProgress: (progress) {
+          if (mounted) {
+            setState(() {
+              _pictureUploadProgress[index] = progress;
+            });
+          }
+        },
+      );
+
+      if (mounted) {
+        setState(() {
+          _pictureUrlControllers[index].text = url;
+          _uploadingPictures[index] = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Picture uploaded successfully!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _uploadingPictures[index] = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Upload failed: ${ErrorHandler.getUserFriendlyMessage(e)}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -398,7 +583,7 @@ class _AddEditCourseScreenState extends State<AddEditCourseScreen> {
                 label: 'Category',
                 value: _selectedCategory,
                 items: _categories,
-                onChanged: (v) => setState(() => _selectedCategory = v!),
+                onChanged: (v) => setState(() => _selectedCategory = v ?? _categories.first),
               ),
               const SizedBox(height: 16),
               _buildDropdown(
@@ -420,7 +605,7 @@ class _AddEditCourseScreenState extends State<AddEditCourseScreen> {
               Row(
                 children: [
                   Text(
-                    'Thumbnail URL',
+                    'Thumbnail',
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -432,29 +617,50 @@ class _AddEditCourseScreenState extends State<AddEditCourseScreen> {
                     color: kPrimaryColor,
                     onPressed: () => _showHostingHelpDialog(
                       context,
-                      title: 'Where to Host Images',
-                      content: 'Upload your thumbnail image to:\n\n'
-                          '• Cloudinary (Recommended): https://cloudinary.com\n'
-                          '  - Free tier: 25GB storage\n'
-                          '  - Get direct URL after upload\n\n'
-                          '• ImgBB: https://imgbb.com\n'
-                          '  - Free, no account needed\n\n'
-                          '• Imgur: https://imgur.com\n'
-                          '  - Free, easy to use\n\n'
-                          'Then paste the direct image URL here.',
+                      title: 'Thumbnail Upload',
+                      content: 'You can either:\n\n'
+                          '• Upload directly: Click "Upload Image" to upload from your device\n'
+                          '• Paste URL: Enter a URL from Cloudinary, ImgBB, or Imgur',
                     ),
-                    tooltip: 'Where to host images?',
+                    tooltip: 'How to add thumbnail?',
                   ),
                 ],
               ),
               const SizedBox(height: 8),
-              _buildTextField(
-                controller: _thumbnailUrlController,
-                label: 'Thumbnail URL (required)',
-                icon: Icons.link,
-                validator: (v) => Validators.url(v, required: true),
-                hintText: 'https://res.cloudinary.com/... or https://i.imgur.com/...',
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildTextField(
+                      controller: _thumbnailUrlController,
+                      label: 'Thumbnail URL (required)',
+                      icon: Icons.link,
+                      validator: (v) => Validators.url(v, required: true),
+                      hintText: 'Upload or paste URL...',
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  ElevatedButton.icon(
+                    onPressed: _isUploadingThumbnail ? null : _uploadThumbnail,
+                    icon: _isUploadingThumbnail
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.cloud_upload),
+                    label: const Text('Upload'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: kPrimaryColor,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                ],
               ),
+              if (_isUploadingThumbnail)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
+                  child: LinearProgressIndicator(value: _thumbnailUploadProgress),
+                ),
               const SizedBox(height: 16),
               
               // Video URLs Section
@@ -465,7 +671,11 @@ class _AddEditCourseScreenState extends State<AddEditCourseScreen> {
                 onAdd: () {
                   try {
                     setState(() {
+                      final newIndex = _videoUrlControllers.length;
                       _videoUrlControllers.add(TextEditingController());
+                      // Initialize upload state for new field
+                      _uploadingVideos[newIndex] = false;
+                      _videoUploadProgress[newIndex] = 0.0;
                     });
                   } catch (e) {
                     // Handle any errors when adding a new field
@@ -510,7 +720,11 @@ class _AddEditCourseScreenState extends State<AddEditCourseScreen> {
                 onAdd: () {
                   try {
                     setState(() {
+                      final newIndex = _pictureUrlControllers.length;
                       _pictureUrlControllers.add(TextEditingController());
+                      // Initialize upload state for new field
+                      _uploadingPictures[newIndex] = false;
+                      _pictureUploadProgress[newIndex] = 0.0;
                     });
                   } catch (e) {
                     // Handle any errors when adding a new field
@@ -661,12 +875,17 @@ class _AddEditCourseScreenState extends State<AddEditCourseScreen> {
 
   Widget _buildDropdown({
     required String label,
-    required String value,
+    required String? value,
     required List<String> items,
     required ValueChanged<String?> onChanged,
   }) {
+    // Ensure value is in items list, or use first item
+    final validValue = (value != null && items.contains(value)) 
+        ? value 
+        : (items.isNotEmpty ? items.first : null);
+    
     return DropdownButtonFormField<String>(
-      value: value,
+      value: validValue,
       decoration: InputDecoration(
         labelText: label,
         border: OutlineInputBorder(
@@ -736,38 +955,80 @@ class _AddEditCourseScreenState extends State<AddEditCourseScreen> {
         ),
         const SizedBox(height: 8),
         
-        // URL input fields
+        // URL input fields with upload buttons
         ...controllers.asMap().entries.map((entry) {
           final index = entry.key;
           final controller = entry.value;
+          final isUploading = isVideo 
+              ? (_uploadingVideos[index] ?? false)
+              : (_uploadingPictures[index] ?? false);
+          final uploadProgress = isVideo
+              ? (_videoUploadProgress[index] ?? 0.0)
+              : (_pictureUploadProgress[index] ?? 0.0);
+          
           return Padding(
             padding: const EdgeInsets.only(bottom: 8.0),
-            child: Row(
+            child: Column(
               children: [
-                Expanded(
-                  child: TextFormField(
-                    controller: controller,
-                    decoration: InputDecoration(
-                      labelText: '${isVideo ? "Video" : "Image"} URL ${index + 1}',
-                      hintText: isVideo 
-                          ? 'https://www.youtube.com/watch?v=... or https://vimeo.com/...'
-                          : 'https://res.cloudinary.com/... or https://i.imgur.com/...',
-                      prefixIcon: Icon(icon),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        controller: controller,
+                        decoration: InputDecoration(
+                          labelText: '${isVideo ? "Video" : "Image"} URL ${index + 1}',
+                          hintText: isVideo 
+                              ? 'https://www.youtube.com/watch?v=... or upload video'
+                              : 'https://res.cloudinary.com/... or upload image',
+                          prefixIcon: Icon(icon),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          filled: true,
+                          fillColor: Colors.white,
+                        ),
+                        validator: (v) => v != null && v.trim().isNotEmpty 
+                            ? Validators.url(v) 
+                            : null,
                       ),
-                      filled: true,
-                      fillColor: Colors.white,
                     ),
-                    validator: (v) => v != null && v.trim().isNotEmpty 
-                        ? Validators.url(v) 
-                        : null,
-                  ),
+                    const SizedBox(width: 8),
+                    // Upload button
+                    ElevatedButton.icon(
+                      onPressed: isUploading 
+                          ? null 
+                          : () => isVideo 
+                              ? _uploadVideo(index)
+                              : _uploadPicture(index),
+                      icon: isUploading
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.cloud_upload, size: 18),
+                      label: const Text('Upload'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: kPrimaryColor,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      ),
+                    ),
+                    if (controllers.length > 1) ...[
+                      const SizedBox(width: 4),
+                      IconButton(
+                        icon: const Icon(Icons.remove_circle, color: Colors.red),
+                        onPressed: () => onRemove(index),
+                        tooltip: 'Remove',
+                      ),
+                    ],
+                  ],
                 ),
-                if (controllers.length > 1)
-                  IconButton(
-                    icon: const Icon(Icons.remove_circle, color: Colors.red),
-                    onPressed: () => onRemove(index),
+                // Upload progress indicator
+                if (isUploading)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4.0),
+                    child: LinearProgressIndicator(value: uploadProgress),
                   ),
               ],
             ),
