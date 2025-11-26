@@ -16,11 +16,7 @@ import 'screens/onboarding_screen.dart';
 import 'theme_cubit.dart';
 import 'screens/email_verification_screen.dart';
 import 'screens/home_screen.dart';
-
-// --- ADDED THIS IMPORT ---
-// Make sure your file is named 'splash_screen.dart' and inside the 'screens' folder
 import 'screens/splash_screen.dart';
-// -------------------------
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
