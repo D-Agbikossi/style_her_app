@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-// NOTE: Assuming AppRoutes is defined and imported correctly
-import 'package:frontend/routes.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../routes.dart';
 
 // --- PLACEHOLDER CLASSES (Based on your context) ---
 // Define placeholder colors and radii
@@ -89,24 +89,7 @@ final List<MyCourse> completedCourses = [
   ),
 ];
 
-final List<MyCourse> ongoingCourses = [
-  const MyCourse(
-    id: 'C201',
-    title: 'Advanced Styling',
-    category: 'Hair Styling',
-    duration: '2 Hrs 46 Mins',
-    rating: 4.6,
-    isCompleted: false,
-  ),
-  const MyCourse(
-    id: 'C202',
-    title: 'Color Theory',
-    category: 'Hair Coloring',
-    duration: '1 Hrs 58 Mins',
-    rating: 4.9,
-    isCompleted: false,
-  ),
-];
+List<MyCourse> ongoingCourses = [];
 
 class MyCoursesScreen extends StatefulWidget {
   const MyCoursesScreen({super.key});
@@ -117,12 +100,46 @@ class MyCoursesScreen extends StatefulWidget {
 class _MyCoursesScreenState extends State<MyCoursesScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tab;
+  bool _isLoading = true;
 
   @override
   void initState() {
-    // Initial index set to 0 to default to 'Completed' (based on the design image)
-    _tab = TabController(length: 2, vsync: this, initialIndex: 0);
+    _tab = TabController(length: 2, vsync: this, initialIndex: 1); // Start with Ongoing tab
     super.initState();
+    _fetchEnrollments();
+  }
+
+  Future<void> _fetchEnrollments() async {
+    try {
+      final QuerySnapshot snapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc('current_user') // Replace with actual user ID
+          .collection('enrollments')
+          .orderBy('enrolledAt', descending: true)
+          .get();
+
+      setState(() {
+        ongoingCourses = snapshot.docs
+            .map((doc) {
+              final data = doc.data() as Map<String, dynamic>;
+              return MyCourse(
+                id: data['courseId'] ?? '',
+                title: data['courseTitle'] ?? 'Unknown Course',
+                category: data['courseCategory'] ?? 'General',
+                duration: '2 Hrs 30 Mins', // Default duration
+                rating: 4.5, // Default rating
+                isCompleted: data['completed'] ?? false,
+              );
+            })
+            .where((course) => !course.isCompleted)
+            .toList();
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   @override
@@ -201,10 +218,10 @@ class _MyCoursesScreenState extends State<MyCoursesScreen>
         : Colors.white;
 
     // 🌟 FIX: Determine the navigation route 🌟
-    // Completed goes to Certificate, Ongoing goes to Curriculum Detail
+    // Completed goes to Certificate, Ongoing goes to Course Player
     final String route = isCompleted
         ? AppRoutes.certificate
-        : AppRoutes.curriculumDetail;
+        : AppRoutes.coursePlayer;
 
     // Determine the argument format (Course ID)
     final String argument = course.id;
@@ -321,19 +338,38 @@ class _MyCoursesScreenState extends State<MyCoursesScreen>
     );
   }
 
-  // 🌟 MODIFIED: Course List Widget to use the new model 🌟
   Widget _buildCourseList(List<MyCourse> courses, {bool completed = false}) {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    
+    if (courses.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.school_outlined, size: 64, color: Colors.grey[400]),
+            const SizedBox(height: 16),
+            Text(
+              completed ? 'No completed courses yet' : 'No ongoing courses yet',
+              style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Enroll in courses to see them here',
+              style: TextStyle(color: Colors.grey),
+            ),
+          ],
+        ),
+      );
+    }
+
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: courses.length,
       itemBuilder: (context, index) {
         final course = courses[index];
-        // Hardcode mock progress for ongoing courses for demonstration
-        final double progressValue = index == 0
-            ? 0.56
-            : index == 1
-            ? 0.29
-            : 0.75;
+        final double progressValue = 0.3; // Default progress for ongoing courses
 
         return _buildCourseCard(
           course: course,

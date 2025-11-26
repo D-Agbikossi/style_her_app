@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-
-// Ensure the routes are imported for navigation
-import 'package:frontend/routes.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../routes.dart';
+import '../models/course.dart';
 
 // --- Color Helpers ---
 Color hexToColor(String hexCode) {
@@ -17,27 +17,6 @@ final Color kPrimaryBlue = hexToColor(
 final Color kCourseCardColor =
     Colors.white; // Course cards appear white in the image
 
-// --- Data Models and Sample Data ---
-
-class Course {
-  // 🌟 NEW: Add ID for routing 🌟
-  final String id;
-  final String category;
-  final String title;
-  final String price;
-  final double rating;
-  final int modules;
-
-  const Course({
-    required this.id, // ID is now required
-    required this.category,
-    required this.title,
-    required this.price,
-    required this.rating,
-    required this.modules,
-  });
-}
-
 final List<String> categories = [
   'All',
   'Hair Styling',
@@ -45,50 +24,6 @@ final List<String> categories = [
   'Arts',
   'Make Up',
   'Nail Care',
-];
-
-// 🌟 UPDATED SAMPLE DATA with ID 🌟
-final List<Course> sampleCourses = [
-  const Course(
-    id: 'C001',
-    category: 'Hair Making',
-    title: 'Fundamentals of Hair Making',
-    price: '7058/-',
-    rating: 4.2,
-    modules: 8,
-  ),
-  const Course(
-    id: 'C002',
-    category: 'Hair Styling',
-    title: 'Hair Styling 101',
-    price: r'$20',
-    rating: 3.9,
-    modules: 12,
-  ),
-  const Course(
-    id: 'C003',
-    category: 'Make Up',
-    title: 'Introduction to Make Up',
-    price: r'$20',
-    rating: 4.2,
-    modules: 9,
-  ),
-  const Course(
-    id: 'C004',
-    category: 'Nail Care',
-    title: 'Acrylic Nails Tutorial',
-    price: r'$25',
-    rating: 4.9,
-    modules: 10,
-  ),
-  const Course(
-    id: 'C005',
-    category: 'Hair Styling',
-    title: 'Hair Styling Tricks',
-    price: r'$67',
-    rating: 4.5,
-    modules: 6,
-  ),
 ];
 
 // --- Course Card Widget ---
@@ -105,6 +40,49 @@ class CourseCard extends StatelessWidget {
       AppRoutes.courseDetail,
       arguments: course.id, // Pass the unique course ID
     );
+  }
+
+  // 🌟 ENROLL FUNCTION 🌟
+  Future<void> _enrollInCourse(BuildContext context, Course course) async {
+    final navigator = Navigator.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    
+    try {
+      // Save enrollment to Firebase
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc('current_user') // Replace with actual user ID
+          .collection('enrollments')
+          .doc(course.id)
+          .set({
+        'courseId': course.id,
+        'courseTitle': course.title,
+        'courseCategory': course.category,
+        'enrolledAt': FieldValue.serverTimestamp(),
+        'progress': 0.0,
+        'completed': false,
+      });
+
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text('Enrolled in ${course.title}!'),
+          backgroundColor: kPrimaryBlue,
+          duration: const Duration(seconds: 1),
+          action: SnackBarAction(
+            label: 'View',
+            textColor: Colors.white,
+            onPressed: () => navigator.pushNamed(AppRoutes.myCourses),
+          ),
+        ),
+      );
+    } catch (e) {
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text('Failed to enroll: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   @override
@@ -174,7 +152,7 @@ class CourseCard extends StatelessWidget {
 
                     // Row 3: Price
                     Text(
-                      course.price,
+                      course.isFree ? 'Free' : '\$${course.price?.toStringAsFixed(2) ?? '0.00'}',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -211,7 +189,7 @@ class CourseCard extends StatelessWidget {
 
                         // Modules Count
                         Text(
-                          '${course.modules} Modules',
+                          '${course.lessonCount} Lessons',
                           style: TextStyle(
                             fontSize: 14,
                             color: Colors.grey[600],
@@ -219,6 +197,33 @@ class CourseCard extends StatelessWidget {
                           ),
                         ),
                       ],
+                    ),
+
+                    const SizedBox(height: 8),
+
+                    // Enroll Button
+                    SizedBox(
+                      width: double.infinity,
+                      height: 32,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          _enrollInCourse(context, course);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: kPrimaryBlue,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                        ),
+                        child: const Text(
+                          'Enroll',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -284,12 +289,40 @@ class PopularCoursesScreen extends StatefulWidget {
 
 class _PopularCoursesScreenState extends State<PopularCoursesScreen> {
   String _selectedCategory = categories.first;
+  List<Course> _courses = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchCourses();
+  }
+
+  Future<void> _fetchCourses() async {
+    try {
+      final QuerySnapshot snapshot = await FirebaseFirestore.instance
+          .collection('courses')
+          .orderBy('createdAt', descending: true)
+          .get();
+
+      setState(() {
+        _courses = snapshot.docs
+            .map((doc) => Course.fromMap(doc.id, doc.data() as Map<String, dynamic>))
+            .toList();
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
 
   List<Course> get _filteredCourses {
     if (_selectedCategory == 'All') {
-      return sampleCourses;
+      return _courses;
     }
-    return sampleCourses
+    return _courses
         .where((course) => course.category == _selectedCategory)
         .toList();
   }
@@ -343,16 +376,20 @@ class _PopularCoursesScreenState extends State<PopularCoursesScreen> {
 
           // 2. Course List
           Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.only(top: 8.0, bottom: 20.0),
-              itemCount: _filteredCourses.length,
-              itemBuilder: (context, index) {
-                final course = _filteredCourses[index];
-                return CourseCard(
-                  course: course,
-                ); // Uses the tappable CourseCard
-              },
-            ),
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _filteredCourses.isEmpty
+                    ? const Center(child: Text('No courses found'))
+                    : ListView.builder(
+                        padding: const EdgeInsets.only(top: 8.0, bottom: 20.0),
+                        itemCount: _filteredCourses.length,
+                        itemBuilder: (context, index) {
+                          final course = _filteredCourses[index];
+                          return CourseCard(
+                            course: course,
+                          );
+                        },
+                      ),
           ),
         ],
       ),

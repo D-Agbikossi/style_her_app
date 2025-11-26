@@ -8,8 +8,8 @@
  */
 
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:provider/provider.dart';
 import '../widgets/video_player_widget.dart';
 import '../widgets/image_gallery_widget.dart';
 import '../models/course.dart';
@@ -36,13 +36,7 @@ class _CourseDetailsScreenState extends State<CourseDetailsScreen> {
   void initState() {
     super.initState();
     if (widget.courseId != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        Provider.of<CourseProvider>(
-          context,
-          listen: false,
-        ).fetchCourseById(widget.courseId!);
-        _checkEnrollmentStatus();
-      });
+      _checkEnrollmentStatus();
     }
   }
 
