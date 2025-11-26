@@ -6,19 +6,21 @@ import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 import 'blocs/auth_bloc.dart';
 import 'repositories/course_repository.dart';
 import 'routes.dart';
 import 'screens/onboarding_screen.dart';
-import 'screens/login_screen.dart';
+import 'theme_cubit.dart';
+import 'screens/email_verification_screen.dart';
 import 'screens/home_screen.dart';
-<<<<<<< HEAD
-import 'services/preferences_service.dart';
-=======
+
+// --- ADDED THIS IMPORT ---
+// Make sure your file is named 'splash_screen.dart' and inside the 'screens' folder
 import 'screens/splash_screen.dart';
->>>>>>> Sakhigbe
+// -------------------------
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -63,7 +65,11 @@ class MyApp extends StatelessWidget {
           ),
         ),
         onGenerateRoute: AppRoutes.generateRoute,
+
+        // --- UPDATED THIS LINE ---
+        // Changed from AuthOrOnboarding() to SplashScreen()
         home: const SplashScreen(),
+        // -------------------------
       ),
     );
   }
@@ -77,65 +83,21 @@ class AuthOrOnboarding extends StatefulWidget {
 }
 
 class _AuthOrOnboardingState extends State<AuthOrOnboarding> {
-  final PreferencesService _prefsService = PreferencesService();
-  bool _isLoading = true;
-  bool _showOnboarding = true;
-
   @override
   void initState() {
     super.initState();
-    _checkOnboardingStatus();
+    // Clear all cached authentication data
+    _clearAuthCache();
   }
 
-  /// Check if onboarding has been completed
-  Future<void> _checkOnboardingStatus() async {
-    try {
-      final isCompleted = await _prefsService.isOnboardingCompleted();
-      setState(() {
-        _showOnboarding = !isCompleted;
-        _isLoading = false;
-      });
-    } catch (e) {
-      // If check fails, show onboarding
-      setState(() {
-        _showOnboarding = true;
-        _isLoading = false;
-      });
-    }
+  Future<void> _clearAuthCache() async {
+    await FirebaseAuth.instance.signOut();
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
-    }
-
-    // Show onboarding if not completed, otherwise check auth state
-    if (_showOnboarding) {
-      return const OnboardingScreen();
-    }
-
-    // Check authentication state
-    return StreamBuilder(
-      stream: FirebaseAuth.instance.authStateChanges(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
-        }
-
-        if (snapshot.hasData) {
-          // User is logged in
-          return const AuthWrapper();
-        } else {
-          // User is not logged in, go to login
-          return const LoginScreen();
-        }
-      },
-    );
+    // Always show onboarding screen - no auto-login
+    return const OnboardingScreen();
   }
 }
 
