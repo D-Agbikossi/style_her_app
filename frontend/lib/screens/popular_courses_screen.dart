@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 // Ensure the routes are imported for navigation
 import 'package:frontend/routes.dart';

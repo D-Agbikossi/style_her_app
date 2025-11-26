@@ -15,8 +15,7 @@ import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 // Screen imports
 import 'package:frontend/routes.dart';
 
-// Theme imports
-import 'package:frontend/main.dart';
+import '../services/preferences_service.dart';
 
 const Color kPrimaryColor = Color(0xFF2C5BB1);
 
@@ -166,9 +165,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   /**
    * Skip onboarding and navigate to sign up screen
+   * Saves onboarding completion preference before navigating
    */
-  void _skipToSignUp() {
-    Navigator.of(context).pushReplacementNamed(AppRoutes.signup);
+  Future<void> _skipToSignUp() async {
+    final prefsService = PreferencesService();
+    // Mark onboarding as completed
+    await prefsService.setOnboardingCompleted(true);
+    // Navigate to sign up screen
+    if (mounted) {
+      Navigator.of(context).pushReplacementNamed(AppRoutes.signup);
+    }
   }
 }
 

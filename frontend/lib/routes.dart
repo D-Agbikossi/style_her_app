@@ -17,6 +17,9 @@ import 'screens/course_detail_screen.dart';
 import 'screens/course_certification_screen.dart';
 // 🌟 IMPORT THE CURRICULUM DETAIL SCREEN 🌟
 import 'screens/curriculum_detail.dart';
+import 'screens/payment_screen.dart';
+import 'screens/settings_screen.dart';
+import 'screens/help_center_screen.dart';
 
 class AppRoutes {
   static const String root = '/';
@@ -40,51 +43,54 @@ class AppRoutes {
   static const String profile = '/profile';
   // 🌟 FIX: ADD MISSING CURRICULUM DETAIL ROUTE CONSTANT 🌟
   static const String curriculumDetail = '/curriculum-detail';
+  static const String payment = '/payment';
+  static const String settings = '/settings';
+  static const String helpCenter = '/help-center';
 
-  static Route<dynamic> generateRoute(RouteSettings settings) {
-    final args = settings.arguments;
+  static Route<dynamic> generateRoute(RouteSettings routeSettings) {
+    final args = routeSettings.arguments;
 
-    switch (settings.name) {
+    switch (routeSettings.name) {
       case root:
-        return _buildRoute(settings, const OnboardingScreen());
+        return _buildRoute(routeSettings, const OnboardingScreen());
       case onboarding:
-        return _buildRoute(settings, const OnboardingScreen());
+        return _buildRoute(routeSettings, const OnboardingScreen());
       case signup:
-        return _buildRoute(settings, const SignUpScreen());
+        return _buildRoute(routeSettings, const SignUpScreen());
       case login:
-        return _buildRoute(settings, const LoginScreen());
+        return _buildRoute(routeSettings, const LoginScreen());
       case forgotPassword:
-        return _buildRoute(settings, const ForgotPasswordScreen());
+        return _buildRoute(routeSettings, const ForgotPasswordScreen());
       case emailVerification:
-        return _buildRoute(settings, const EmailVerificationScreen());
+        return _buildRoute(routeSettings, const EmailVerificationScreen());
       case interest:
-        return _buildRoute(settings, const InterestScreen());
+        return _buildRoute(routeSettings, const InterestScreen());
       case home:
-        return _buildRoute(settings, const HomeScreen());
+        return _buildRoute(routeSettings, const HomeScreen());
       case myCourses:
-        return _buildRoute(settings, const MyCoursesScreen());
+        return _buildRoute(routeSettings, const MyCoursesScreen());
       case popularCourses:
-        return _buildRoute(settings, const PopularCoursesScreen());
+        return _buildRoute(routeSettings, const PopularCoursesScreen());
       case topMentors:
-        return _buildRoute(settings, const TopMentorsScreen());
+        return _buildRoute(routeSettings, const TopMentorsScreen());
       case notifications:
-        return _buildRoute(settings, const NotificationsScreen());
+        return _buildRoute(routeSettings, const NotificationsScreen());
 
       case mentorProfile:
         if (args is String) {
-          return _buildRoute(settings, MentorProfileScreen(mentorId: args));
+          return _buildRoute(routeSettings, MentorProfileScreen(mentorId: args));
         }
         return _buildRoute(
-          settings,
+          routeSettings,
           const Scaffold(body: Center(child: Text('Mentor ID missing'))),
         );
 
       case courseDetail:
         if (args is String) {
-          return _buildRoute(settings, CourseDetailsScreen(courseId: args));
+          return _buildRoute(routeSettings, CourseDetailsScreen(courseId: args));
         }
         return _buildRoute(
-          settings,
+          routeSettings,
           const Scaffold(body: Center(child: Text('Course ID missing'))),
         );
 
@@ -93,12 +99,12 @@ class AppRoutes {
         if (args is String) {
           // NOTE: We hardcode 'Alex' for recipientName since we don't have user data here.
           return _buildRoute(
-            settings,
+            routeSettings,
             CertificateScreen(courseId: args, recipientName: 'Alex'),
           );
         }
         return _buildRoute(
-          settings,
+          routeSettings,
           const Scaffold(body: Center(child: Text('Certificate ID missing'))),
         );
 
@@ -106,27 +112,36 @@ class AppRoutes {
       case curriculumDetail:
         if (args is String) {
           // Pass the course ID to the curriculum screen
-          return _buildRoute(settings, CurriculumDetailScreen(courseId: args));
+          return _buildRoute(routeSettings, CurriculumDetailScreen(courseId: args));
         }
         return _buildRoute(
-          settings,
+          routeSettings,
           const Scaffold(body: Center(child: Text('Curriculum ID missing'))),
         );
 
+      case payment:
+        return _buildRoute(routeSettings, const PaymentScreen());
+
+      case settings:
+        return _buildRoute(routeSettings, const SettingsScreen());
+
+      case helpCenter:
+        return _buildRoute(routeSettings, const HelpCenterScreen());
+
       default:
         return MaterialPageRoute(
-          settings: settings,
+          settings: routeSettings,
           builder: (_) => Scaffold(
-            body: Center(child: Text('Route ${settings.name} not found')),
+            body: Center(child: Text('Route ${routeSettings.name} not found')),
           ),
         );
     }
   }
 
   static MaterialPageRoute<dynamic> _buildRoute(
-    RouteSettings settings,
+    RouteSettings routeSettings,
     Widget child,
   ) {
-    return MaterialPageRoute(settings: settings, builder: (_) => child);
+    return MaterialPageRoute(settings: routeSettings, builder: (_) => child);
   }
 }

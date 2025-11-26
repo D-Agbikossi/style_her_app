@@ -10,13 +10,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import '../repositories/course_repository.dart';
 import '../widgets/video_player_widget.dart';
 import '../widgets/image_gallery_widget.dart';
 import '../models/course.dart';
 import '../services/enrollment_service.dart';
 import '../constants/app_constants.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+import '../repositories/course_repository.dart';
 
 class CourseDetailsScreen extends StatefulWidget {
   final String? courseId;
@@ -365,11 +364,13 @@ class _CourseDetailsScreenState extends State<CourseDetailsScreen> {
         );
       }
     } catch (e) {
+      // Handle enrollment errors
       if (mounted) {
         setState(() {
           _isEnrolling = false;
         });
 
+        // Show user-friendly error message (remove "Exception: " prefix)
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(

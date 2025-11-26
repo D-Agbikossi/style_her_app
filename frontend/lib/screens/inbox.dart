@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme_cubit.dart';
+import '../widgets/profile_picture_widget.dart';
 
 class InboxScreen extends StatelessWidget {
   const InboxScreen({super.key});
@@ -71,7 +72,8 @@ class InboxScreen extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  const CircleAvatar(
+                  ProfilePictureWidget(
+                    imageUrl: null, // TODO: Get photoUrl from chat data
                     radius: 22,
                     backgroundColor: Colors.black12,
                   ),

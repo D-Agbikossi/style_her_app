@@ -52,7 +52,9 @@ class CourseProvider with ChangeNotifier {
 
   /**
    * Fetch popular courses (rating >= 4.5)
-   * Note: Sorts in memory to avoid composite index requirement
+   * 
+   * Strategy: Fetch more courses than needed, sort in memory, then take top N.
+   * This avoids Firestore composite index requirement for rating + createdAt queries.
    */
   Future<void> fetchPopularCourses() async {
     try {
@@ -60,18 +62,19 @@ class CourseProvider with ChangeNotifier {
       _error = null;
       notifyListeners();
 
-      // Fetch more courses and sort in memory to avoid index requirement
+      // Fetch courses with rating >= 4.5, limit to maxSearchResults to avoid large queries
       final QuerySnapshot snapshot = await _firestore
           .collection('courses')
           .where('rating', isGreaterThanOrEqualTo: AppConstants.minPopularRating)
-          .limit(AppConstants.maxSearchResults) // Get more, then sort and take top 10
+          .limit(AppConstants.maxSearchResults)
           .get();
 
+      // Sort by rating (descending) in memory, then take top N courses
       _popularCourses = snapshot.docs
           .map((doc) => Course.fromMap(doc.id, doc.data() as Map<String, dynamic>))
           .toList()
-        ..sort((a, b) => b.rating.compareTo(a.rating))
-        ..take(AppConstants.popularCoursesLimit)
+        ..sort((a, b) => b.rating.compareTo(a.rating)) // Sort descending by rating
+        ..take(AppConstants.popularCoursesLimit) // Take top N
         ..toList();
 
       _isLoading = false;
@@ -126,7 +129,7 @@ class CourseProvider with ChangeNotifier {
         .map((snapshot) => snapshot.docs
             .map((doc) => Course.fromMap(
                   doc.id,
-                  doc.data() as Map<String, dynamic>,
+                  doc.data(),
                 ))
             .toList());
   }

@@ -35,8 +35,9 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
     _initializeVideo();
   }
 
+  /// Initialize video player with URL validation and error handling
   Future<void> _initializeVideo() async {
-    // Validate video URL
+    // Validate video URL is not empty
     if (widget.videoUrl.isEmpty) {
       if (mounted) {
         setState(() {
@@ -47,6 +48,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
       return;
     }
 
+    // Validate URL format (must have scheme like http:// or https://)
     final uri = Uri.tryParse(widget.videoUrl);
     if (uri == null || !uri.hasScheme) {
       if (mounted) {
@@ -59,15 +61,18 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
     }
 
     try {
+      // Create and initialize video controller
       _controller = VideoPlayerController.networkUrl(uri);
       await _controller.initialize();
       
-      // Check if widget is still mounted after async operation
+      // Safety check: ensure widget is still mounted after async operation
+      // Prevents setState on disposed widget
       if (!mounted) {
         _controller.dispose();
         return;
       }
       
+      // Auto-play if requested
       if (widget.autoPlay) {
         _controller.play();
       }
@@ -78,13 +83,14 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
         });
       }
     } catch (e) {
+      // Handle initialization errors gracefully
       if (mounted) {
         setState(() {
           _hasError = true;
           _errorMessage = 'Unable to load video. Please check your connection.';
         });
       }
-      // Dispose controller if initialization failed
+      // Clean up controller if initialization failed
       if (_controller.value.isInitialized) {
         _controller.dispose();
       }
@@ -164,9 +170,11 @@ class _VideoControlsOverlayState extends State<_VideoControlsOverlay> {
     widget.controller.addListener(_videoListener);
   }
 
+  /// Listen to video player state changes and update UI accordingly
   void _videoListener() {
-    if (!mounted) return;
+    if (!mounted) return; // Prevent updates if widget is disposed
     final isCurrentlyPlaying = widget.controller.value.isPlaying;
+    // Only update state if playing status actually changed (prevents unnecessary rebuilds)
     if (_isPlaying != isCurrentlyPlaying) {
       setState(() {
         _isPlaying = isCurrentlyPlaying;

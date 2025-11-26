@@ -12,6 +12,7 @@ import 'package:provider/provider.dart';
 import '../routes.dart';
 import 'package:frontend/blocs/auth_bloc.dart';
 import 'edit_profile.dart';
+import '../widgets/profile_picture_widget.dart';
 
 const Color kPrimaryColor = Color(0xFF2C5BB1); // Main brand blue
 const Color kBackgroundColor = Color(0xFFF5F9FF); // App background color
@@ -68,26 +69,12 @@ class ProfileScreen extends StatelessWidget {
           Center(
             child: Column(
               children: [
-                Container(
-                  width: 100,
-                  height: 100,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: Colors.grey.withOpacity(0.3),
-                      width: 2,
-                    ),
-                  ),
-                  child: CircleAvatar(
-                    radius: 48,
-                    backgroundColor: Colors.white,
-                    backgroundImage: profile?.photoUrl != null || user?.photoURL != null
-                        ? NetworkImage(profile?.photoUrl ?? user?.photoURL ?? '')
-                        : null,
-                    child: profile?.photoUrl == null && user?.photoURL == null
-                        ? const Icon(Icons.person, color: Colors.grey, size: 50)
-                        : null,
-                  ),
+                ProfilePictureWidget(
+                  imageUrl: profile?.photoUrl ?? user?.photoURL,
+                  radius: 50,
+                  backgroundColor: Colors.white,
+                  borderColor: Colors.grey.withOpacity(0.3),
+                  borderWidth: 2,
                 ),
                 const SizedBox(height: 16),
                 Text(
@@ -143,10 +130,7 @@ class ProfileScreen extends StatelessWidget {
             icon: Icons.payment_outlined,
             title: "Payment",
             onTap: () {
-              // TODO: Navigate to payment screen
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Payment screen coming soon')),
-              );
+              Navigator.of(context).pushNamed(AppRoutes.payment);
             },
           ),
           _buildMenuItem(
@@ -154,10 +138,7 @@ class ProfileScreen extends StatelessWidget {
             icon: Icons.settings_outlined,
             title: "Settings",
             onTap: () {
-              // TODO: Navigate to settings screen
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Settings screen coming soon')),
-              );
+              Navigator.of(context).pushNamed(AppRoutes.settings);
             },
           ),
           _buildMenuItem(
@@ -165,10 +146,7 @@ class ProfileScreen extends StatelessWidget {
             icon: Icons.help_outline,
             title: "Help Center",
             onTap: () {
-              // TODO: Navigate to help center
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Help Center coming soon')),
-              );
+              Navigator.of(context).pushNamed(AppRoutes.helpCenter);
             },
           ),
           const SizedBox(height: 16),
