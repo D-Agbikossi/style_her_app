@@ -1,7 +1,6 @@
 /**
  * Forgot Password Screen
- * 
- * This screen handles password reset functionality:
+ * * This screen handles password reset functionality:
  * - Email input form for password reset
  * - Form validation for email format
  * - Password reset request handling
@@ -18,16 +17,10 @@ import '../utils/validators.dart';
 
 // Theme constants defined locally
 
-const kScaffoldBackground = Color(0xFFF5F5F5); // light gray background
+const kScaffoldBackground = Colors.white; // Changed to white to match image
+// Updated to match the specific lighter blue in your screenshot
+const Color kBrandBlue = Color(0xFF6B86C2);
 
-const Color kPrimaryColor = Color(0xFF2C5BB1); // Main brand blue
-const Color kBackgroundColor = Color(0xFFF5F9FF); // App background color
-
-/**
- * Forgot Password Screen
- * 
- * Main widget for password reset functionality
- */
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
 
@@ -37,29 +30,19 @@ class ForgotPasswordScreen extends StatefulWidget {
 
 /**
  * Forgot Password Screen State
- * 
- * Manages form state, email input, and password reset process
+ * * Manages form state, email input, and password reset process
  */
 class _ForgotPasswordState extends State<ForgotPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   bool _isLoading = false;
 
-  /**
-   * Clean up resources when widget is disposed
-   * Prevents memory leaks by disposing controllers
-   */
   @override
   void dispose() {
     _emailController.dispose();
     super.dispose();
   }
 
-  /**
-   * Handle password reset form submission
-   * Validates email format and sends reset email
-   * Shows success/error messages and navigates back on success
-   */
   Future<void> _handleResetPassword() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
@@ -92,16 +75,14 @@ class _ForgotPasswordState extends State<ForgotPasswordScreen> {
     }
   }
 
-  /**
-   * Build the forgot password screen UI
-   * Includes app bar, form with email field, and reset button
-   */
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: kScaffoldBackground,
       appBar: AppBar(
         backgroundColor: kScaffoldBackground,
         elevation: 0,
+        // Using generic arrow back logic, ensured color is black
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () => Navigator.of(context).pop(),
@@ -110,32 +91,59 @@ class _ForgotPasswordState extends State<ForgotPasswordScreen> {
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.all(24.0),
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center, // Centered items
               children: [
-                const SizedBox(height: 60),
-                Center(
-                  child: Text(
-                    "Forgot Password",
-                    style: Theme.of(context).textTheme.displayLarge,
+                const SizedBox(height: 100), // Spacing from top
+                // UPDATED: Title Text matched to image
+                Text(
+                  "Forgot Password",
+                  style: TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                    color: kBrandBlue, // The specific blue color
                   ),
+                  textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 60),
+
+                const SizedBox(height: 50),
+
                 Form(
                   key: _formKey,
                   child: Column(children: [_buildEmailField()]),
                 ),
-                const SizedBox(height: 40),
+
+                const SizedBox(height: 30),
+
+                // UPDATED: Button matched to image
                 SizedBox(
                   width: double.infinity,
+                  height: 55, // Fixed height for solid look
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : _handleResetPassword,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: kBrandBlue, // Blue background
+                      foregroundColor: Colors.white, // White text
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(
+                          10,
+                        ), // Rounded corners
+                      ),
+                      textStyle: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                     child: _isLoading
                         ? const SizedBox(
                             height: 20,
                             width: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
                           )
                         : const Text("Reset Password"),
                   ),
@@ -148,26 +156,35 @@ class _ForgotPasswordState extends State<ForgotPasswordScreen> {
     );
   }
 
-  /**
-   * Build email input field with validation
-   * Uses validateEmail function from validators utility
-   */
   Widget _buildEmailField() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          "Email Address",
-          style: TextStyle(fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: 8),
+        // Hidden label if you want it exactly like the minimalist screenshot
+        // or keep it for accessibility. I kept it clean as requested.
         TextFormField(
           controller: _emailController,
           keyboardType: TextInputType.emailAddress,
           validator: validateEmail,
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             hintText: "Input email address",
-            border: OutlineInputBorder(),
+            hintStyle: TextStyle(color: Colors.grey[400]),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 16,
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(color: Colors.grey[400]!),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(color: Colors.grey[400]!),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: const BorderSide(color: kBrandBlue),
+            ),
           ),
         ),
       ],

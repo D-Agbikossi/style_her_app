@@ -14,7 +14,11 @@ import 'routes.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
+<<<<<<< HEAD
 import 'services/preferences_service.dart';
+=======
+import 'screens/splash_screen.dart';
+>>>>>>> Sakhigbe
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -59,7 +63,7 @@ class MyApp extends StatelessWidget {
           ),
         ),
         onGenerateRoute: AppRoutes.generateRoute,
-        home: const AuthOrOnboarding(), // Initial screen based on auth state
+        home: const SplashScreen(),
       ),
     );
   }

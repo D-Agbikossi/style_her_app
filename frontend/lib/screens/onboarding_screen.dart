@@ -1,7 +1,6 @@
 /**
  * Onboarding Screen - User Introduction
- * 
- * This screen provides a welcome experience for new users including:
+ * * This screen provides a welcome experience for new users including:
  * - Multi-page onboarding flow with PageView
  * - Course discovery introduction
  * - Mentor connection overview
@@ -17,12 +16,14 @@ import 'package:frontend/routes.dart';
 
 import '../services/preferences_service.dart';
 
-const Color kPrimaryColor = Color(0xFF2C5BB1);
+// I updated this primary color to match the button in your screenshot exactly
+const Color kPrimaryColor = Color(0xFF7292CF);
+const Color kTitleColor = Color(0xFF6B86C2); // Blue for title
+const Color kSubtitleColor = Color(0xFF9FAFD6); // Lighter blue for subtitle
 
 /**
  * Onboarding Screen Widget
- * 
- * Main widget for the onboarding flow with page navigation
+ * * Main widget for the onboarding flow with page navigation
  */
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -33,8 +34,7 @@ class OnboardingScreen extends StatefulWidget {
 
 /**
  * Onboarding Screen State
- * 
- * Manages page controller, current page tracking, and onboarding content
+ * * Manages page controller, current page tracking, and onboarding content
  */
 class _OnboardingScreenState extends State<OnboardingScreen> {
   /**
@@ -60,7 +60,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       "subtitle": "Begin your journey to beauty mastery",
     },
     {
-      "title": "Get Job Opportunities", // Corrected spelling
+      "title": "Get Job Opportunities",
       "subtitle": "Begin your journey to beauty mastery",
     },
   ];
@@ -69,13 +69,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
    * Build the onboarding screen UI
    * Includes skip button, PageView, indicator, and navigation button
    */
-  /**
-   * Build the onboarding page UI
-   * Shows image placeholder, title, and subtitle
-   */
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white, // Ensure background is white
       body: SafeArea(
         child: Column(
           children: [
@@ -88,7 +85,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   onPressed: _skipToSignUp,
                   child: const Text(
                     "Skip",
-                    style: TextStyle(color: Colors.grey, fontSize: 16),
+                    style: TextStyle(color: Colors.black, fontSize: 16),
                   ),
                 ),
               ),
@@ -118,21 +115,40 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               controller: _controller,
               count: onboardingData.length,
               effect: const WormEffect(
-                dotColor: Colors.black12,
-                activeDotColor: kPrimaryColor,
-                dotHeight: 10,
-                dotWidth: 10,
+                dotColor: Color(0xFFE0E0E0), // Light grey for inactive
+                activeDotColor: kPrimaryColor, // Blue for active
+                dotHeight: 8,
+                dotWidth: 8,
+                spacing: 8,
               ),
             ),
             const SizedBox(height: 40),
 
-            // Next Button
+            // Next Button - UPDATED to match screenshot
             Padding(
-              padding: const EdgeInsets.all(24.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 24.0,
+                vertical: 24.0,
+              ),
               child: SizedBox(
                 width: double.infinity,
+                height: 55, // Fixed height for a solid look
                 child: ElevatedButton(
                   onPressed: _nextPage,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: kPrimaryColor, // The blue from the image
+                    foregroundColor: Colors.white, // Text color
+                    elevation: 0, // Flat look
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(
+                        12,
+                      ), // Rounded corners (not pill)
+                    ),
+                    textStyle: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                   child: Text(
                     _currentPage == onboardingData.length - 1
                         ? "Get Started"
@@ -180,8 +196,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
 /**
  * Onboarding Page Widget
- * 
- * Individual page component for onboarding content
+ * * Individual page component for onboarding content
  */
 class _OnboardingPage extends StatelessWidget {
   /**
@@ -207,17 +222,34 @@ class _OnboardingPage extends StatelessWidget {
           height: 250,
           fit: BoxFit.contain,
         ),
-        const SizedBox(height: 60),
-        Text(
-          title,
-          style: Theme.of(context).textTheme.headlineMedium,
-          textAlign: TextAlign.center,
+        const SizedBox(height: 40),
+        // UPDATED Title Styling
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Text(
+            title,
+            style: const TextStyle(
+              fontSize: 26,
+              fontWeight: FontWeight.bold,
+              color: kTitleColor, // Custom Blue Color
+              height: 1.2,
+            ),
+            textAlign: TextAlign.center,
+          ),
         ),
-        const SizedBox(height: 16),
-        Text(
-          subtitle,
-          style: Theme.of(context).textTheme.bodyMedium,
-          textAlign: TextAlign.center,
+        const SizedBox(height: 12),
+        // UPDATED Subtitle Styling
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 30),
+          child: Text(
+            subtitle,
+            style: const TextStyle(
+              fontSize: 15,
+              color: kSubtitleColor, // Lighter Blue/Purple Color
+              height: 1.4,
+            ),
+            textAlign: TextAlign.center,
+          ),
         ),
       ],
     );

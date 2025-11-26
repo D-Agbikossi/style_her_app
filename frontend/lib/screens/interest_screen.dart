@@ -9,17 +9,10 @@
 
 import 'package:flutter/material.dart';
 
-// --- ADD THIS IMPORT ---
-// This is the file that contains your MainNavigationScreen
+// Import for navigation
 import 'bottom_navigation_screen.dart';
 // --- END IMPORT ---
 
-const Color kPrimaryColor = Color(0xFF2C5BB1);
-
-/**
- * Interest Selection Screen
- * * Main widget for interest selection functionality
- */
 class InterestScreen extends StatefulWidget {
   const InterestScreen({super.key});
 
@@ -27,15 +20,7 @@ class InterestScreen extends StatefulWidget {
   State<InterestScreen> createState() => _InterestScreenState();
 }
 
-/**
- * Interest Selection Screen State
- * * Manages available interests and user selections
- */
 class _InterestScreenState extends State<InterestScreen> {
-  /**
-   * Available interest categories for users to select from
-   * Covers various beauty and personal care topics
-   */
   final List<String> _interests = [
     "Show All",
     "Make Up",
@@ -49,19 +34,12 @@ class _InterestScreenState extends State<InterestScreen> {
     "Tools",
   ];
 
-  /**
-   * Set of currently selected interests
-   * Uses Set for efficient add/remove operations
-   */
   final Set<String> _selectedInterests = {};
 
-  /**
-   * Build the interest selection screen UI
-   * Includes title, subtitle, interest chips, and navigation buttons
-   */
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24.0),
@@ -74,18 +52,22 @@ class _InterestScreenState extends State<InterestScreen> {
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                   color: Colors.black,
                   fontSize: 28,
+                  fontWeight: FontWeight.w600,
                 ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 16),
               Text(
                 "You can choose more than one",
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyMedium?.copyWith(fontSize: 16),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  fontSize: 16,
+                  color: Colors.grey,
+                ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 40),
+
+              // Chips Section
               Expanded(
                 child: SingleChildScrollView(
                   child: Wrap(
@@ -109,17 +91,15 @@ class _InterestScreenState extends State<InterestScreen> {
                           });
                         },
                         backgroundColor: Colors.white,
-                        selectedColor: kPrimaryColor,
+                        selectedColor: kButtonBlue,
                         labelStyle: TextStyle(
                           color: isSelected ? Colors.white : Colors.black87,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w500,
                         ),
                         shape: StadiumBorder(
                           side: BorderSide(
-                            color: isSelected
-                                ? kPrimaryColor
-                                : Colors.grey[300]!,
-                            width: 1.5,
+                            color: isSelected ? kButtonBlue : Colors.grey[300]!,
+                            width: 1.0,
                           ),
                         ),
                         padding: const EdgeInsets.symmetric(
@@ -132,14 +112,32 @@ class _InterestScreenState extends State<InterestScreen> {
                   ),
                 ),
               ),
+
               const SizedBox(height: 20),
+
               SizedBox(
                 width: double.infinity,
+                height: 56,
                 child: ElevatedButton(
                   onPressed: _navigateToHome,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: kButtonBlue,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    textStyle: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                   child: const Text("Next"),
                 ),
               ),
+
+              const SizedBox(height: 16),
+
               TextButton(
                 onPressed: _navigateToHome,
                 child: const Text(
@@ -155,18 +153,9 @@ class _InterestScreenState extends State<InterestScreen> {
     );
   }
 
-  /**
-   * Navigate to home screen
-   * Used for both Next and Skip actions
-   * Replaces current route to prevent back navigation
-   */
   void _navigateToHome() {
-    // --- THIS IS THE FIX ---
-    // Instead of navigating to a named route, we navigate
-    // to the actual screen that has the Bottom Nav Bar.
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(builder: (context) => const MainNavigationScreen()),
     );
-    // --- END FIX ---
   }
 }

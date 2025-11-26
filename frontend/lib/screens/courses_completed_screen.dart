@@ -23,7 +23,8 @@ class MyCoursesApp extends StatelessWidget {
         scaffoldBackgroundColor: const Color(
           0xFFF7F8FA,
         ), // Light grey background
-        primarySwatch: Colors.blue,
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF6B86D4)),
+        useMaterial3: true,
         appBarTheme: const AppBarTheme(
           color: Colors.white,
           elevation: 0,
