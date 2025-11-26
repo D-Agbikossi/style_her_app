@@ -3,8 +3,9 @@ import '../theme_cubit.dart';
 import '../widgets/section_item.dart';
 
 class CurriculumDetailScreen extends StatelessWidget {
-  const CurriculumDetailScreen({super.key});
-
+  final String courseId;
+  const CurriculumDetailScreen({Key? key, required this.courseId})
+    : super(key: key);
   @override
   Widget build(BuildContext context) {
     return Scaffold(
