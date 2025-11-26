@@ -1,7 +1,6 @@
 /**
  * Settings Screen
- * 
- * This screen displays app settings including:
+ * * This screen displays app settings including:
  * - Account settings
  * - Notification preferences
  * - Privacy settings
@@ -9,8 +8,8 @@
  */
 
 import 'package:flutter/material.dart';
-import 'edit_profile.dart';
-import '../services/preferences_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'edit_profile.dart'; // Keep this if you have this file, otherwise remove it
 
 const Color kPrimaryColor = Color(0xFF2C5BB1);
 const Color kBackgroundColor = Color(0xFFF5F9FF);
@@ -23,8 +22,7 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  final PreferencesService _prefsService = PreferencesService();
-  
+  // State variables to hold current settings
   bool _emailNotifications = true;
   bool _pushNotifications = true;
   bool _courseUpdates = true;
@@ -39,31 +37,53 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _loadPreferences();
   }
 
-  /// Load all preferences from SharedPreferences
+  /// Load all preferences directly from SharedPreferences
   Future<void> _loadPreferences() async {
     try {
-      final darkMode = await _prefsService.getDarkMode();
-      final language = await _prefsService.getLanguage();
-      final emailNotif = await _prefsService.getEmailNotifications();
-      final pushNotif = await _prefsService.getPushNotifications();
-      final courseUpdates = await _prefsService.getCourseUpdates();
-      final marketingEmails = await _prefsService.getMarketingEmails();
+      final prefs = await SharedPreferences.getInstance();
+
+      if (!mounted) return;
 
       setState(() {
-        _darkMode = darkMode;
-        _language = language == 'en' ? 'English (US)' : language == 'fr' ? 'French' : 'English (US)';
-        _emailNotifications = emailNotif;
-        _pushNotifications = pushNotif;
-        _courseUpdates = courseUpdates;
-        _marketingEmails = marketingEmails;
+        // Load booleans (providing defaults if they don't exist)
+        _darkMode = prefs.getBool('darkMode') ?? false;
+        _emailNotifications = prefs.getBool('emailNotifications') ?? true;
+        _pushNotifications = prefs.getBool('pushNotifications') ?? true;
+        _courseUpdates = prefs.getBool('courseUpdates') ?? true;
+        _marketingEmails = prefs.getBool('marketingEmails') ?? false;
+
+        // Load Language
+        final savedLangCode = prefs.getString('language') ?? 'en';
+        _language = _getLanguageNameFromCode(savedLangCode);
+
         _isLoading = false;
       });
     } catch (e) {
-      // If loading fails, use defaults
-      setState(() {
-        _isLoading = false;
-      });
+      debugPrint("Error loading settings: $e");
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
+  }
+
+  /// Helper to convert code 'en' -> 'English (US)'
+  String _getLanguageNameFromCode(String code) {
+    switch (code) {
+      case 'fr':
+        return 'French';
+      case 'es':
+        return 'Spanish';
+      default:
+        return 'English (US)';
+    }
+  }
+
+  /// Helper to save boolean preferences
+  Future<void> _saveBool(String key, bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(key, value);
   }
 
   @override
@@ -80,16 +100,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           title: const Text(
             'Settings',
-            style: TextStyle(
-              color: Colors.black,
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
-            ),
+            style: TextStyle(color: Colors.black, fontWeight: FontWeight.w600),
           ),
         ),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
+
     return Scaffold(
       backgroundColor: kBackgroundColor,
       appBar: AppBar(
@@ -159,12 +176,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             title: 'Email Notifications',
             subtitle: 'Receive notifications via email',
             value: _emailNotifications,
-            onChanged: (value) async {
-              setState(() {
-                _emailNotifications = value;
-              });
-              // Save to SharedPreferences
-              await _prefsService.setEmailNotifications(value);
+            onChanged: (value) {
+              setState(() => _emailNotifications = value);
+              _saveBool('emailNotifications', value);
             },
           ),
           const SizedBox(height: 8),
@@ -173,12 +187,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             title: 'Push Notifications',
             subtitle: 'Receive push notifications',
             value: _pushNotifications,
-            onChanged: (value) async {
-              setState(() {
-                _pushNotifications = value;
-              });
-              // Save to SharedPreferences
-              await _prefsService.setPushNotifications(value);
+            onChanged: (value) {
+              setState(() => _pushNotifications = value);
+              _saveBool('pushNotifications', value);
             },
           ),
           const SizedBox(height: 8),
@@ -187,12 +198,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             title: 'Course Updates',
             subtitle: 'Get notified about new courses',
             value: _courseUpdates,
-            onChanged: (value) async {
-              setState(() {
-                _courseUpdates = value;
-              });
-              // Save to SharedPreferences
-              await _prefsService.setCourseUpdates(value);
+            onChanged: (value) {
+              setState(() => _courseUpdates = value);
+              _saveBool('courseUpdates', value);
             },
           ),
           const SizedBox(height: 8),
@@ -201,12 +209,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             title: 'Marketing Emails',
             subtitle: 'Receive promotional emails',
             value: _marketingEmails,
-            onChanged: (value) async {
-              setState(() {
-                _marketingEmails = value;
-              });
-              // Save to SharedPreferences
-              await _prefsService.setMarketingEmails(value);
+            onChanged: (value) {
+              setState(() => _marketingEmails = value);
+              _saveBool('marketingEmails', value);
             },
           ),
 
@@ -257,17 +262,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
             title: 'Dark Mode',
             subtitle: 'Switch to dark theme',
             value: _darkMode,
-            onChanged: (value) async {
-              setState(() {
-                _darkMode = value;
-              });
-              // Save to SharedPreferences
-              await _prefsService.setDarkMode(value);
-              if (!mounted) return;
+            onChanged: (value) {
+              setState(() => _darkMode = value);
+              _saveBool('darkMode', value);
+
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text(value ? 'Dark mode enabled' : 'Dark mode disabled'),
-                  duration: const Duration(seconds: 2),
+                  content: Text(
+                    value ? 'Dark mode enabled' : 'Dark mode disabled',
+                  ),
+                  duration: const Duration(seconds: 1),
                 ),
               );
             },
@@ -346,11 +350,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             color: kPrimaryColor.withOpacity(0.1),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Icon(
-            icon,
-            color: titleColor ?? kPrimaryColor,
-            size: 24,
-          ),
+          child: Icon(icon, color: titleColor ?? kPrimaryColor, size: 24),
         ),
         title: Text(
           title,
@@ -362,10 +362,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
         subtitle: Text(
           subtitle,
-          style: TextStyle(
-            fontSize: 14,
-            color: Colors.grey[600],
-          ),
+          style: TextStyle(fontSize: 14, color: Colors.grey[600]),
         ),
         trailing: onTap != null
             ? const Icon(Icons.chevron_right, color: Colors.grey)
@@ -405,17 +402,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
         title: Text(
           title,
-          style: const TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: 16,
-          ),
+          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
         ),
         subtitle: Text(
           subtitle,
-          style: TextStyle(
-            fontSize: 14,
-            color: Colors.grey[600],
-          ),
+          style: TextStyle(fontSize: 14, color: Colors.grey[600]),
         ),
         trailing: Switch(
           value: value,
@@ -449,17 +440,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   : null,
               onTap: () async {
                 Navigator.of(context).pop();
+
                 final languageCode = lang['code']!;
                 final languageName = lang['name']!;
-                await _prefsService.setLanguage(languageCode);
+
+                // Save language
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.setString('language', languageCode);
+
                 if (!mounted) return;
                 setState(() {
                   _language = languageName;
                 });
+
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text('Language changed to ${lang['name']}'),
-                    duration: const Duration(seconds: 2),
+                    duration: const Duration(seconds: 1),
                   ),
                 );
               },
@@ -496,14 +493,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 const SnackBar(content: Text('Account deletion coming soon')),
               );
             },
-            child: const Text(
-              'Delete',
-              style: TextStyle(color: Colors.red),
-            ),
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
     );
   }
 }
-
