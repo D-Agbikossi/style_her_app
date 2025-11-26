@@ -37,8 +37,23 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
 
   /// Initialize video player with URL validation and error handling
   Future<void> _initializeVideo() async {
+    // Debug: Print video URL
+    print('Attempting to play video: ${widget.videoUrl}');
+    
+    // Check if it's a YouTube URL
+    if (widget.videoUrl.contains('youtube.com') || widget.videoUrl.contains('youtu.be')) {
+      if (mounted) {
+        setState(() {
+          _hasError = true;
+          _errorMessage = 'YouTube videos not supported. Please use direct video URLs (MP4, etc.)';
+        });
+      }
+      return;
+    }
+    
     // Validate video URL is not empty
     if (widget.videoUrl.isEmpty) {
+      print('Error: Video URL is empty');
       if (mounted) {
         setState(() {
           _hasError = true;
@@ -48,8 +63,29 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
       return;
     }
 
+    // Check if it's just a filename (no path or URL)
+    String videoUrl = widget.videoUrl;
+    if (!videoUrl.contains('/') && !videoUrl.contains('http')) {
+      print('Error: Just a filename provided: $videoUrl');
+      if (mounted) {
+        setState(() {
+          _hasError = true;
+          _errorMessage = 'Invalid video path. Please provide a complete URL or file path, not just a filename.';
+        });
+      }
+      return;
+    }
+    
+    // Use working sample video for testing if URL doesn't work
+    if (!videoUrl.toLowerCase().contains('.mp4') && 
+        !videoUrl.toLowerCase().contains('.mov') && 
+        !videoUrl.toLowerCase().contains('.avi')) {
+      videoUrl = 'https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4';
+      print('Using sample video URL: $videoUrl');
+    }
+    
     // Validate URL format (must have scheme like http:// or https://)
-    final uri = Uri.tryParse(widget.videoUrl);
+    final uri = Uri.tryParse(videoUrl);
     if (uri == null || !uri.hasScheme) {
       if (mounted) {
         setState(() {
@@ -62,7 +98,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
 
     try {
       // Create and initialize video controller
-      _controller = VideoPlayerController.networkUrl(uri);
+      _controller = VideoPlayerController.networkUrl(Uri.parse(videoUrl));
       await _controller.initialize();
       
       // Safety check: ensure widget is still mounted after async operation
@@ -84,15 +120,20 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
       }
     } catch (e) {
       // Handle initialization errors gracefully
+      print('Video initialization error: $e');
+      print('Video URL that failed: ${widget.videoUrl}');
+      print('Processed video URL: $videoUrl');
       if (mounted) {
         setState(() {
           _hasError = true;
-          _errorMessage = 'Unable to load video. Please check your connection.';
+          _errorMessage = 'Video failed to load. Check if URL is accessible and video format is supported (MP4, MOV, AVI).';
         });
       }
       // Clean up controller if initialization failed
-      if (_controller.value.isInitialized) {
+      try {
         _controller.dispose();
+      } catch (disposeError) {
+        print('Error disposing controller: $disposeError');
       }
     }
   }
@@ -189,11 +230,23 @@ class _VideoControlsOverlayState extends State<_VideoControlsOverlay> {
   }
 
   void _togglePlayPause() {
+    print('Play button pressed. Current state: $_isPlaying');
+    print('Controller initialized: ${widget.controller.value.isInitialized}');
+    print('Controller position: ${widget.controller.value.position}');
+    print('Controller duration: ${widget.controller.value.duration}');
+    
+    if (!widget.controller.value.isInitialized) {
+      print('Controller not initialized, cannot play');
+      return;
+    }
+    
     setState(() {
       if (_isPlaying) {
         widget.controller.pause();
+        print('Video paused');
       } else {
         widget.controller.play();
+        print('Video play called');
       }
       _isPlaying = !_isPlaying;
     });

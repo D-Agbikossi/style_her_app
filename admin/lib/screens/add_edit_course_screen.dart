@@ -192,27 +192,18 @@ class _AddEditCourseScreenState extends State<AddEditCourseScreen> {
     // Validate form fields first
     if (!_formKey.currentState!.validate()) return;
     
-    // Thumbnail URL is required (no file upload fallback)
-    if (_thumbnailUrlController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please provide a thumbnail URL'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-
-    // Validate thumbnail URL format (must be valid HTTP/HTTPS URL)
-    final thumbnailUrlError = Validators.url(_thumbnailUrlController.text.trim());
-    if (thumbnailUrlError != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Invalid thumbnail URL: $thumbnailUrlError'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
+    // Validate thumbnail URL format only if provided
+    if (_thumbnailUrlController.text.trim().isNotEmpty) {
+      final thumbnailUrlError = Validators.url(_thumbnailUrlController.text.trim());
+      if (thumbnailUrlError != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Invalid thumbnail URL: $thumbnailUrlError'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
     }
 
     setState(() {
@@ -228,40 +219,8 @@ class _AddEditCourseScreenState extends State<AddEditCourseScreen> {
         final controller = _videoUrlControllers[i];
         final url = controller.text.trim();
         if (url.isNotEmpty) {
-          // Validate each URL format before adding
-          final error = Validators.url(url);
-          if (error != null) {
-            // Show user-friendly error with video number and specific issue
-            final videoNumber = i + 1;
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Invalid Video URL #$videoNumber',
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(error),
-                      if (url.length <= 60) ...[
-                        const SizedBox(height: 4),
-                        Text(
-                          'URL: $url',
-                          style: TextStyle(fontSize: 12, color: Colors.white70),
-                        ),
-                      ],
-                    ],
-                  ),
-                  backgroundColor: Colors.red,
-                  duration: const Duration(seconds: 6),
-                ),
-              );
-            }
-            throw Exception('Invalid video URL #$videoNumber: $error');
-          }
+          // Allow any non-empty URL for videos (no HTTP/HTTPS requirement)
+          // Videos can be local files, assets, or any URL format
           videoUrls.add(url);
         }
       }
@@ -632,9 +591,9 @@ class _AddEditCourseScreenState extends State<AddEditCourseScreen> {
                   Expanded(
                     child: _buildTextField(
                       controller: _thumbnailUrlController,
-                      label: 'Thumbnail URL (required)',
+                      label: 'Thumbnail URL (optional)',
                       icon: Icons.link,
-                      validator: (v) => Validators.url(v, required: true),
+                      validator: (v) => v != null && v.trim().isNotEmpty ? Validators.url(v) : null,
                       hintText: 'Upload or paste URL...',
                     ),
                   ),
@@ -987,9 +946,7 @@ class _AddEditCourseScreenState extends State<AddEditCourseScreen> {
                           filled: true,
                           fillColor: Colors.white,
                         ),
-                        validator: (v) => v != null && v.trim().isNotEmpty 
-                            ? Validators.url(v) 
-                            : null,
+                        validator: null, // Allow any video URL format
                       ),
                     ),
                     const SizedBox(width: 8),
