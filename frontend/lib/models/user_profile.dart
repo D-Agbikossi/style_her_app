@@ -1,12 +1,11 @@
 /**
  * User Profile Model
- * 
- * Represents a user's profile information in the StyleHer app.
+ * * Represents a user's profile information in the StyleHer app.
  * Contains basic user data like UID, email, display name, and photo URL.
  * Used for storing and retrieving user profile information from Firestore.
  */
 class UserProfile {
-/**
+  /**
    * User unique identifier from Firebase Auth
    */
   final String uid;
@@ -26,17 +25,36 @@ class UserProfile {
    */
   final String? photoUrl;
 
+  /**
+   * User Nickname (optional)
+   */
+  final String? nickname;
+
+  /**
+   * Date of Birth (YYYY-MM-DD)
+   */
+  final String? dob;
+
+  /**
+   * Gender (Male/Female/Other)
+   */
+  final String? gender;
+
+  String? get name => displayName;
+
   UserProfile({
     required this.uid,
     required this.email,
     this.displayName,
     this.photoUrl,
+    this.nickname,
+    this.dob,
+    this.gender,
   });
 
-/**
+  /**
    * Create UserProfile from Firestore document data
-   * 
-   * @param uid Document ID (user UID)
+   * * @param uid Document ID (user UID)
    * @param data Document data map
    * @return UserProfile instance
    */
@@ -47,19 +65,26 @@ class UserProfile {
       email: map['email'] ?? '',
       displayName: map['displayName'],
       photoUrl: map['photoUrl'],
+      // Map new fields
+      nickname: map['nickname'],
+      dob: map['dob'],
+      gender: map['gender'],
     );
   }
 
-/**
+  /**
    * Convert UserProfile to Firestore document data
-   * 
-   * @return Map of user profile properties for Firestore
+   * * @return Map of user profile properties for Firestore
    */
   Map<String, dynamic> toMap() {
     return {
       'email': email,
       if (displayName != null) 'displayName': displayName,
       if (photoUrl != null) 'photoUrl': photoUrl,
+      // Add new fields to map
+      if (nickname != null) 'nickname': nickname,
+      if (dob != null) 'dob': dob,
+      if (gender != null) 'gender': gender,
     };
   }
 }
