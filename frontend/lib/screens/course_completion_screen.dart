@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
 
-// ======================================================
-// COURSE COMPLETED CARD — FINAL VERSION (200px ICON + CONFETTI FIXED)
-// ======================================================
 
 class CourseCompletedCard extends StatelessWidget {
   const CourseCompletedCard({super.key});
