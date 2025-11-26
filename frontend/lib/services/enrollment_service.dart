@@ -27,7 +27,7 @@ class EnrollmentService {
       final userId = user.uid;
       final now = FieldValue.serverTimestamp();
 
-      // Check if already enrolled
+      // Check if user is already enrolled (prevent duplicate enrollments)
       final enrollmentDoc = await _firestore
           .collection('users')
           .doc(userId)
@@ -36,11 +36,11 @@ class EnrollmentService {
           .get();
 
       if (enrollmentDoc.exists) {
-        // Already enrolled
+        // User already enrolled - return false to indicate no new enrollment
         return false;
       }
 
-      // Create enrollment document
+      // Create enrollment document in user's enrollments subcollection
       await _firestore
           .collection('users')
           .doc(userId)
@@ -48,19 +48,19 @@ class EnrollmentService {
           .doc(courseId)
           .set({
         'courseId': courseId,
-        'enrolledAt': now,
-        'progress': 0.0,
+        'enrolledAt': now, // Server timestamp for enrollment date
+        'progress': 0.0, // Start with 0% progress
         'completed': false,
         'lastAccessedAt': now,
-        'videosWatched': <String>[],
+        'videosWatched': <String>[], // Track which videos user has watched
       });
 
-      // Update course enrollment count
+      // Increment course enrollment count atomically
       await _firestore
           .collection('courses')
           .doc(courseId)
           .update({
-        'enrolledCount': FieldValue.increment(1),
+        'enrolledCount': FieldValue.increment(1), // Atomic increment
       });
 
       return true;
@@ -167,7 +167,7 @@ class EnrollmentService {
       });
     } catch (e) {
       // Silently fail - progress tracking is not critical
-      print('Error updating video progress: $e');
+      // Error logged silently to avoid disrupting user experience
     }
   }
 

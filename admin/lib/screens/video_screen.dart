@@ -48,6 +48,8 @@ class _VideoScreenState extends State<VideoScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _selectedCategory = 'All';
   List<String> _categories = ['All'];
+  String _selectedMentor = 'All';
+  List<Map<String, String>> _mentors = [{'id': 'All', 'name': 'All'}];
   
   // Bulk operations
   final Set<String> _selectedCourseIds = {};
@@ -60,6 +62,7 @@ class _VideoScreenState extends State<VideoScreen> {
   void initState() {
     super.initState();
     _loadCategories();
+    _loadMentors();
   }
 
   Future<void> _loadCategories() async {
@@ -67,6 +70,32 @@ class _VideoScreenState extends State<VideoScreen> {
     setState(() {
       _categories = ['All', ...categories];
     });
+  }
+
+  /// Load mentor names from Firestore for filter dropdown
+  /// Falls back to "All" option if loading fails
+  Future<void> _loadMentors() async {
+    try {
+      // Get first snapshot from mentors stream
+      final snapshot = await _adminService.getMentorsStream().first;
+      final mentors = [
+        {'id': 'All', 'name': 'All'} // Default "All" option
+      ];
+      
+      // Extract mentor names from Firestore documents
+      for (var doc in snapshot.docs) {
+        final data = doc.data() as Map<String, dynamic>;
+        final name = data['displayName'] ?? 'Unknown'; // Fallback if displayName missing
+        mentors.add({'id': doc.id, 'name': name});
+      }
+      
+      setState(() {
+        _mentors = mentors;
+      });
+    } catch (e) {
+      // Handle error silently - filter will just show "All" option
+      // No need to show error to user for optional filter feature
+    }
   }
 
   @override
@@ -281,11 +310,16 @@ class _VideoScreenState extends State<VideoScreen> {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Text(
-                                _selectedCategory,
-                                style: const TextStyle(
-                                  color: kPrimaryColor,
-                                  fontWeight: FontWeight.w600,
+                              const Icon(Icons.category, color: kPrimaryColor, size: 16),
+                              const SizedBox(width: 8),
+                              Flexible(
+                                child: Text(
+                                  _selectedCategory,
+                                  style: const TextStyle(
+                                    color: kPrimaryColor,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                               const Icon(Icons.arrow_drop_down, color: kPrimaryColor, size: 20),
@@ -301,10 +335,49 @@ class _VideoScreenState extends State<VideoScreen> {
                         }).toList(),
                       ),
                     ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: PopupMenuButton<String>(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: kPrimaryColor.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.person, color: kPrimaryColor, size: 16),
+                              const SizedBox(width: 8),
+                              Flexible(
+                                child: Text(
+                                  _selectedMentor,
+                                  style: const TextStyle(
+                                    color: kPrimaryColor,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              const Icon(Icons.arrow_drop_down, color: kPrimaryColor, size: 20),
+                            ],
+                          ),
+                        ),
+                        onSelected: (value) => setState(() => _selectedMentor = value),
+                        itemBuilder: (context) => _mentors.map((mentor) {
+                          return PopupMenuItem(
+                            value: mentor['name']!,
+                            child: Text(mentor['name']!),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
                     TextButton(
                       onPressed: () {
                         setState(() {
                           _selectedCategory = 'All';
+                          _selectedMentor = 'All';
                           _searchController.clear();
                         });
                       },
@@ -329,18 +402,25 @@ class _VideoScreenState extends State<VideoScreen> {
                   return _EmptyVideoState();
                 }
 
+                // Convert Firestore documents to Course objects and apply filters
                 final courses = snapshot.data!.docs.map((doc) {
                   return Course.fromMap(doc.id, doc.data() as Map<String, dynamic>);
                 }).where((course) {
+                  // Search filter: case-insensitive title matching
                   if (_searchController.text.isNotEmpty) {
                     if (!course.title.toLowerCase().contains(_searchController.text.toLowerCase())) {
                       return false;
                     }
                   }
+                  // Category filter: exclude if category doesn't match (unless "All" selected)
                   if (_selectedCategory != 'All' && course.category != _selectedCategory) {
                     return false;
                   }
-                  return true;
+                  // Mentor filter: exclude if instructor doesn't match (unless "All" selected)
+                  if (_selectedMentor != 'All' && course.instructor != _selectedMentor) {
+                    return false;
+                  }
+                  return true; // Course passes all filters
                 }).toList();
 
                 return ListView.builder(

@@ -21,18 +21,58 @@ class Validators {
 
   /**
    * Validate URL
+   * Supports standard URLs and common video hosting platforms (YouTube, Vimeo, etc.)
    */
   static String? url(String? value, {bool required = false}) {
     if (value == null || value.isEmpty) {
       return required ? 'URL is required' : null;
     }
-    final urlRegex = RegExp(
-      r'^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$',
-    );
-    if (!urlRegex.hasMatch(value)) {
-      return 'Please enter a valid URL (must start with http:// or https://)';
+    
+    // Trim whitespace
+    final trimmedValue = value.trim();
+    
+    // Check if it starts with http:// or https://
+    if (!trimmedValue.startsWith('http://') && !trimmedValue.startsWith('https://')) {
+      return 'URL must start with http:// or https://';
     }
-    return null;
+    
+    // Try to parse as URI to validate format
+    try {
+      final uri = Uri.parse(trimmedValue);
+      
+      // Check if URI has a valid scheme
+      if (uri.scheme.isEmpty || (uri.scheme != 'http' && uri.scheme != 'https')) {
+        return 'URL must use http:// or https:// protocol';
+      }
+      
+      // Check if URI has a host
+      if (uri.host.isEmpty) {
+        return 'Please enter a valid URL with a domain name (e.g., youtube.com)';
+      }
+      
+      // Remove 'www.' prefix for validation
+      final hostWithoutWww = uri.host.startsWith('www.') 
+          ? uri.host.substring(4) 
+          : uri.host;
+      
+      // Check for valid domain structure
+      // Must have at least one dot (for TLD) OR be a known short domain
+      final validShortDomains = ['youtu.be', 'bit.ly', 'tinyurl.com', 't.co'];
+      final hasValidDomain = hostWithoutWww.contains('.') || validShortDomains.contains(hostWithoutWww);
+      
+      if (!hasValidDomain) {
+        return 'Please enter a valid URL with a proper domain name (e.g., youtube.com, vimeo.com)';
+      }
+      
+      // Additional validation: check for common video hosting domains
+      // Note: We allow any valid URL structure, including custom hosting
+      // Known video domains are accepted but not required
+      
+      return null; // URL is valid
+    } catch (e) {
+      // If parsing fails, provide helpful error message
+      return 'Please enter a valid URL format (e.g., https://www.youtube.com/watch?v=VIDEO_ID)';
+    }
   }
 
   /**

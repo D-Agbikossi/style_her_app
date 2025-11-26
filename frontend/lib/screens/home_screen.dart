@@ -19,6 +19,9 @@ import 'dart:async';
 import '../blocs/auth_bloc.dart';
 import '../repositories/course_repository.dart';
 import '../routes.dart';
+import '../widgets/profile_picture_widget.dart';
+import '../services/mentor_service.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 const Color kPrimaryColor = Color(0xFF2C5BB1); // Main brand blue
 const Color kBackgroundColor = Color(0xFFF5F9FF); // App background color
@@ -65,10 +68,7 @@ class _HomeScreenState extends State<HomeScreen> {
    */
   final List<String> _categories = ["All", "Make Up", "Hair Styling", "Arts"];
 
-  /**
-   * Current search query for course filtering
-   */
-  String _searchQuery = "";
+  // Search query is handled by TextField onChanged callback
 
   /**
    * Initialize screen state
@@ -240,8 +240,6 @@ class _HomeScreenState extends State<HomeScreen> {
    * Build the search bar for course filtering
    */
   Widget _buildSearchBar() {
-    final courseProvider = Provider.of<CourseProvider>(context);
-
     final screenHeight = MediaQuery.of(context).size.height;
     final isSmallScreen = screenHeight < 700;
 
@@ -252,9 +250,8 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       child: TextField(
         onChanged: (value) {
-          setState(() {
-            _searchQuery = value;
-          });
+          // Search functionality can be implemented here
+          // Currently handled by category filtering
         },
         decoration: InputDecoration(
           hintText: "Search Courses",
@@ -490,33 +487,61 @@ class _HomeScreenState extends State<HomeScreen> {
 
   /**
    * Build the top mentors horizontal list
-   * Shows mentor avatars and names
+   * Fetches mentors from Firestore
    */
   Widget _buildTopMentorList() {
-    final List<String> mentors = ["Precious", "Brunelle", "Judith", "Jane"];
+    final mentorService = MentorService();
+    
     return SizedBox(
       height: 120,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 15),
-        itemCount: mentors.length,
-        itemBuilder: (context, index) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10.0),
-            child: Column(
-              children: [
-                CircleAvatar(
-                  radius: 35,
-                  backgroundColor: Colors.grey[800], // Image Placeholder
-                  child: Icon(Icons.person, color: Colors.white, size: 30),
+      child: StreamBuilder(
+        stream: mentorService.getMentorsStream(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (snapshot.hasError || !snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            // Fallback to empty list or show placeholder
+            return const Center(child: Text('No mentors available'));
+          }
+
+          final mentors = snapshot.data!.docs.take(4).toList(); // Show max 4 mentors
+
+          return ListView.builder(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 15),
+            itemCount: mentors.length,
+            itemBuilder: (context, index) {
+              final mentorDoc = mentors[index];
+              final mentorData = mentorDoc.data() as Map<String, dynamic>;
+              final mentorName = mentorData['displayName'] ?? 'Unknown';
+              final photoUrl = mentorData['photoUrl'];
+
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                child: Column(
+                  children: [
+                    ProfilePictureWidget(
+                      imageUrl: photoUrl,
+                      radius: 35,
+                      backgroundColor: Colors.grey[800]!,
+                    ),
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      width: 70,
+                      child: Text(
+                        mentorName,
+                        style: const TextStyle(fontWeight: FontWeight.w600),
+                        textAlign: TextAlign.center,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  mentors[index],
-                  style: const TextStyle(fontWeight: FontWeight.w600),
-                ),
-              ],
-            ),
+              );
+            },
           );
         },
       ),
@@ -598,22 +623,43 @@ class _CourseCard extends StatelessWidget {
               borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(15),
               ),
-              image: thumbnailUrl != null && thumbnailUrl!.isNotEmpty
-                  ? DecorationImage(
-                      image: NetworkImage(thumbnailUrl!),
-                      fit: BoxFit.cover,
-                    )
-                  : null,
             ),
-            child: thumbnailUrl == null || thumbnailUrl!.isEmpty
-                ? Center(
+            child: thumbnailUrl != null && thumbnailUrl!.isNotEmpty
+                ? ClipRRect(
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(15),
+                    ),
+                    child: CachedNetworkImage(
+                      imageUrl: thumbnailUrl!,
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) => Container(
+                        color: Colors.black,
+                        child: Center(
+                          child: CircularProgressIndicator(
+                            color: Colors.white30,
+                            strokeWidth: 2,
+                          ),
+                        ),
+                      ),
+                      errorWidget: (context, url, error) => Container(
+                        color: Colors.black,
+                        child: Center(
+                          child: Icon(
+                            Icons.videocam,
+                            color: Colors.white30,
+                            size: 50,
+                          ),
+                        ),
+                      ),
+                    ),
+                  )
+                : Center(
                     child: Icon(
                       Icons.videocam,
                       color: Colors.white30,
                       size: 50,
                     ),
-                  )
-                : null,
+                  ),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(

@@ -16,8 +16,7 @@ import 'package:provider/provider.dart';
 import '../blocs/auth_bloc.dart';
 import '../utils/validators.dart';
 
-// Theme imports
-import '../main.dart';
+// Theme constants defined locally
 
 const kScaffoldBackground = Color(0xFFF5F5F5); // light gray background
 

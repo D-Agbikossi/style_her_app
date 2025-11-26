@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:frontend/blocs/auth_bloc.dart';
+import '../widgets/profile_picture_widget.dart';
 
 class EditProfileScreen extends StatelessWidget {
   const EditProfileScreen({super.key});
@@ -36,46 +39,43 @@ class EditProfileScreen extends StatelessWidget {
         ),
       ),
 
-      body: ListView(
-        padding: const EdgeInsets.all(20),
-        children: [
-          // ---------------- Avatar Section ----------------
-          Center(
-            child: Stack(
-              children: [
-                Container(
-                  width: 95,
-                  height: 95,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: Colors.blue.withOpacity(0.3),
-                      width: 3,
+      body: Consumer<AuthBloc>(
+        builder: (context, authProvider, _) {
+          final user = authProvider.user;
+          final profile = authProvider.profile;
+          final photoUrl = profile?.photoUrl ?? user?.photoURL;
+
+          return ListView(
+            padding: const EdgeInsets.all(20),
+            children: [
+              // ---------------- Avatar Section ----------------
+              Center(
+                child: Stack(
+                  children: [
+                    ProfilePictureWidget(
+                      imageUrl: photoUrl,
+                      radius: 47.5,
+                      backgroundColor: Colors.white,
+                      borderColor: Colors.blue.withOpacity(0.3),
+                      borderWidth: 3,
                     ),
-                  ),
-                  child: const CircleAvatar(
-                    radius: 45,
-                    backgroundColor: Colors.white,
-                    child: Icon(Icons.image, color: Colors.grey, size: 32),
-                  ),
+                    Positioned(
+                      right: 2,
+                      bottom: 4,
+                      child: Container(
+                        height: 32,
+                        width: 32,
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.blue,
+                        ),
+                        child: const Icon(Icons.camera_alt,
+                            size: 16, color: Colors.white),
+                      ),
+                    )
+                  ],
                 ),
-                Positioned(
-                  right: 2,
-                  bottom: 4,
-                  child: Container(
-                    height: 32,
-                    width: 32,
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.blue,
-                    ),
-                    child: const Icon(Icons.camera_alt,
-                        size: 16, color: Colors.white),
-                  ),
-                )
-              ],
-            ),
-          ),
+              ),
 
           const SizedBox(height: 24),
 
@@ -149,7 +149,9 @@ class EditProfileScreen extends StatelessWidget {
               ),
             ),
           ),
-        ],
+            ],
+          );
+        },
       ),
     );
   }

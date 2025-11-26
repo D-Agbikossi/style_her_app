@@ -10,9 +10,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:frontend/repositories/course_repository.dart';
 import '../models/course.dart';
-import '../routes.dart';
 
 const Color kPrimaryColor = Color(0xFF2C5BB1);
 

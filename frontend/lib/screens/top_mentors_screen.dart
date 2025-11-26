@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/routes.dart'; // Ensure routes are imported
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:frontend/routes.dart';
+import '../widgets/profile_picture_widget.dart';
+import '../services/mentor_service.dart';
 
-// --- Data Model and Sample Data ---
+// --- Data Model ---
 
 class Mentor {
-  // ADD ID AND PROFILE DETAILS
   final String id;
   final String name;
   final String specialty;
@@ -13,65 +15,34 @@ class Mentor {
   final int students;
   final double ratings;
   final String bio;
+  final String? photoUrl;
 
-  const Mentor({
+  Mentor({
     required this.id,
     required this.name,
     required this.specialty,
-    required this.workplace,
-    required this.courses,
-    required this.students,
-    required this.ratings,
-    required this.bio,
+    this.workplace = '',
+    this.courses = 0,
+    this.students = 0,
+    this.ratings = 0.0,
+    this.bio = '',
+    this.photoUrl,
   });
-}
 
-// UPDATED SAMPLE DATA
-final List<Mentor> sampleMentors = [
-  const Mentor(
-    id: 'M001',
-    name: 'Denaton Agbikossi',
-    specialty: 'Hair Making',
-    workplace: 'Maison de Joelle',
-    courses: 12,
-    students: 158,
-    ratings: 500,
-    bio:
-        "Hair Making is what I do for a living and I absolutely love doing it and also teaching about it!",
-  ),
-  const Mentor(
-    id: 'M002',
-    name: 'Chinemerem Judith',
-    specialty: 'Nail Care',
-    workplace: 'Luxury Spa',
-    courses: 8,
-    students: 90,
-    ratings: 230,
-    bio:
-        "Passionate about artistic nail design and giving my students the best foundation in the industry.",
-  ),
-  const Mentor(
-    id: 'M003',
-    name: 'Precious Mozia',
-    specialty: 'Hair Styling',
-    workplace: 'StyleHer Academy',
-    courses: 20,
-    students: 300,
-    ratings: 750,
-    bio:
-        "My goal is to empower the next generation of stylists with modern techniques and business skills.",
-  ),
-  const Mentor(
-    id: 'M004',
-    name: 'Jane Doe',
-    specialty: 'Skin Care',
-    workplace: 'Dermatology Center',
-    courses: 5,
-    students: 50,
-    ratings: 150,
-    bio: "Focused on holistic skin health and science-backed routines.",
-  ),
-];
+  factory Mentor.fromMap(Map<String, dynamic> data) {
+    return Mentor(
+      id: data['id'] ?? '',
+      name: data['name'] ?? 'Unknown',
+      specialty: data['specialty'] ?? 'General',
+      workplace: data['workplace'] ?? '',
+      courses: data['videoCount'] ?? 0, // Use videoCount as courses
+      students: data['students'] ?? 0,
+      ratings: data['ratings'] ?? 0.0,
+      bio: data['bio'] ?? '',
+      photoUrl: data['photoUrl'],
+    );
+  }
+}
 
 // --- Mentor Card Widget ---
 
@@ -89,13 +60,10 @@ class MentorCard extends StatelessWidget {
             vertical: 8.0,
             horizontal: 16.0,
           ),
-          leading: Container(
-            width: 56,
-            height: 56,
-            decoration: const BoxDecoration(
-              color: Colors.black, // Placeholder for the avatar
-              shape: BoxShape.circle,
-            ),
+          leading: ProfilePictureWidget(
+            imageUrl: mentor.photoUrl,
+            radius: 28,
+            backgroundColor: Colors.grey[300]!,
           ),
           title: Text(
             mentor.name,
@@ -133,6 +101,8 @@ class TopMentorsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final mentorService = MentorService();
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -155,11 +125,47 @@ class TopMentorsScreen extends StatelessWidget {
         ],
       ),
       body: SafeArea(
-        child: ListView.builder(
-          itemCount: sampleMentors.length,
-          itemBuilder: (context, index) {
-            final mentor = sampleMentors[index];
-            return MentorCard(mentor: mentor);
+        child: StreamBuilder<QuerySnapshot>(
+          stream: mentorService.getMentorsStream(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            if (snapshot.hasError) {
+              return Center(
+                child: Text('Error loading mentors: ${snapshot.error}'),
+              );
+            }
+
+            if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+              return const Center(
+                child: Text('No mentors available'),
+              );
+            }
+
+            final mentors = snapshot.data!.docs.map((doc) {
+              final data = doc.data() as Map<String, dynamic>;
+              return Mentor.fromMap({
+                'id': doc.id,
+                'name': data['displayName'] ?? 'Unknown',
+                'specialty': data['specialty'] ?? 'General',
+                'workplace': data['workplace'] ?? '',
+                'videoCount': data['videoCount'] ?? 0,
+                'students': data['students'] ?? 0,
+                'ratings': data['ratings'] ?? 0.0,
+                'bio': data['bio'] ?? '',
+                'photoUrl': data['photoUrl'],
+              });
+            }).toList();
+
+            return ListView.builder(
+              itemCount: mentors.length,
+              itemBuilder: (context, index) {
+                final mentor = mentors[index];
+                return MentorCard(mentor: mentor);
+              },
+            );
           },
         ),
       ),

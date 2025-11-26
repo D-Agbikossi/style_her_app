@@ -1,17 +1,7 @@
 import 'package:flutter/material.dart';
-// Import the Mentor model and sample data
-import 'top_mentors_screen.dart'; // Assuming Mentor and sampleMentors are here
-
-// --- HELPER FUNCTION ---
-// Function to simulate fetching mentor data based on ID
-Mentor? _findMentorById(String id) {
-  try {
-    // Uses the sampleMentors list defined in top_mentors_screen.dart
-    return sampleMentors.firstWhere((m) => m.id == id);
-  } catch (e) {
-    return null; // Return null if not found
-  }
-}
+import 'top_mentors_screen.dart'; // Mentor model
+import '../widgets/profile_picture_widget.dart';
+import '../services/mentor_service.dart';
 
 // --- 1. MENTOR PROFILE SCREEN (MAIN LAYOUT) ---
 class MentorProfileScreen extends StatelessWidget {
@@ -22,100 +12,114 @@ class MentorProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Fetch the mentor data based on the passed ID
-    final Mentor? mentor = _findMentorById(mentorId);
+    final mentorService = MentorService();
     final Color primaryColor = Colors.blue.shade700;
 
-    if (mentor == null) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Error')),
-        body: const Center(child: Text('Mentor profile not found.')),
-      );
-    }
+    return FutureBuilder<Map<String, dynamic>?>(
+      future: mentorService.getMentorById(mentorId),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Scaffold(
+            appBar: AppBar(title: const Text('Loading...')),
+            body: const Center(child: CircularProgressIndicator()),
+          );
+        }
 
-    const List<Tab> _tabs = [Tab(text: 'Courses'), Tab(text: 'Ratings')];
+        if (snapshot.hasError || snapshot.data == null) {
+          return Scaffold(
+            appBar: AppBar(title: const Text('Error')),
+            body: const Center(child: Text('Mentor profile not found.')),
+          );
+        }
 
-    return DefaultTabController(
-      length: _tabs.length,
-      child: Scaffold(
-        body: CustomScrollView(
-          slivers: <Widget>[
-            // --- Sliver AppBar for Profile Header ---
-            SliverAppBar(
-              // FIX: Increase expandedHeight aggressively to resolve overflow (370 -> 400)
-              expandedHeight: 400.0,
-              floating: true,
-              pinned: true,
-              automaticallyImplyLeading: false,
-              leading: IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.black),
-                onPressed: () => Navigator.of(context).pop(), // Go back
-              ),
-              flexibleSpace: FlexibleSpaceBar(
-                collapseMode: CollapseMode.pin,
-                background: Padding(
-                  // Adjust padding to match the PreferredSize height (130)
-                  padding: const EdgeInsets.only(bottom: 130),
-                  // PASS THE FOUND MENTOR DATA
-                  child: ProfileHeader(mentor: mentor),
-                ),
-              ),
-              bottom: PreferredSize(
-                // Height of the bottom section (Bio + Tabs)
-                preferredSize: const Size.fromHeight(130.0),
-                child: Container(
-                  color: Colors.white,
-                  child: Column(
-                    children: [
-                      // Bio/Quote Section
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 32.0,
-                          vertical: 16.0,
-                        ),
-                        child: Text(
-                          "\"${mentor.bio}\"", // USE MENTOR BIO
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            fontStyle: FontStyle.italic,
-                            color: Colors.black87,
+        final mentorData = snapshot.data!;
+        final mentor = Mentor.fromMap(mentorData);
+
+        const List<Tab> _tabs = [Tab(text: 'Courses'), Tab(text: 'Ratings')];
+
+        return DefaultTabController(
+          length: _tabs.length,
+          child: Scaffold(
+            body: CustomScrollView(
+              slivers: <Widget>[
+                // --- Sliver AppBar for Profile Header ---
+                SliverAppBar(
+                  // FIX: Increase expandedHeight aggressively to resolve overflow (370 -> 400)
+                  expandedHeight: 400.0,
+                  floating: true,
+                  pinned: true,
+                  automaticallyImplyLeading: false,
+                  leading: IconButton(
+                    icon: const Icon(Icons.arrow_back, color: Colors.black),
+                    onPressed: () => Navigator.of(context).pop(), // Go back
+                  ),
+                  flexibleSpace: FlexibleSpaceBar(
+                    collapseMode: CollapseMode.pin,
+                    background: Padding(
+                      // Adjust padding to match the PreferredSize height (130)
+                      padding: const EdgeInsets.only(bottom: 130),
+                      // PASS THE FOUND MENTOR DATA
+                      child: ProfileHeader(mentor: mentor),
+                    ),
+                  ),
+                  bottom: PreferredSize(
+                    // Height of the bottom section (Bio + Tabs)
+                    preferredSize: const Size.fromHeight(130.0),
+                    child: Container(
+                      color: Colors.white,
+                      child: Column(
+                        children: [
+                          // Bio/Quote Section
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 32.0,
+                              vertical: 16.0,
+                            ),
+                            child: Text(
+                              "\"${mentor.bio}\"", // USE MENTOR BIO
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontStyle: FontStyle.italic,
+                                color: Colors.black87,
+                              ),
+                            ),
                           ),
-                        ),
+                          // TabBar for switching views
+                          TabBar(
+                            tabs: _tabs,
+                            labelColor: primaryColor,
+                            unselectedLabelColor: Colors.grey,
+                            indicatorColor: primaryColor,
+                            indicatorSize: TabBarIndicatorSize.label,
+                            indicatorWeight: 3.0,
+                          ),
+                          const Divider(
+                            height: 0,
+                            thickness: 1,
+                            color: Color(0xFFE0E0E0),
+                          ),
+                        ],
                       ),
-                      // TabBar for switching views
-                      TabBar(
-                        tabs: _tabs,
-                        labelColor: primaryColor,
-                        unselectedLabelColor: Colors.grey,
-                        indicatorColor: primaryColor,
-                        indicatorSize: TabBarIndicatorSize.label,
-                        indicatorWeight: 3.0,
-                      ),
-                      const Divider(
-                        height: 0,
-                        thickness: 1,
-                        color: Color(0xFFE0E0E0),
-                      ),
+                    ),
+                  ),
+                ),
+
+                // --- SliverList for TabBarView Content ---
+                SliverFillRemaining(
+                  child: TabBarView(
+                    children: [
+                      const CoursesView(),
+                      RatingsView(
+                        primaryColor: primaryColor,
+                      ), // Pass color for styling
                     ],
                   ),
                 ),
-              ),
+              ],
             ),
-
-            // --- SliverList for TabBarView Content ---
-            SliverFillRemaining(
-              child: TabBarView(
-                children: [
-                  const CoursesView(),
-                  RatingsView(
-                    primaryColor: primaryColor,
-                  ), // Pass color for styling
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }
@@ -208,14 +212,11 @@ class ProfileHeader extends StatelessWidget {
       color: Colors.white,
       child: Column(
         children: <Widget>[
-          // Profile Image Placeholder
-          Container(
-            width: 80,
-            height: 80,
-            decoration: const BoxDecoration(
-              color: Colors.black,
-              shape: BoxShape.circle,
-            ),
+          // Profile Image
+          ProfilePictureWidget(
+            imageUrl: null, // TODO: Add photoUrl to Mentor model
+            radius: 40,
+            backgroundColor: Colors.grey[800]!,
           ),
           const SizedBox(height: 8),
           // Mentor Name

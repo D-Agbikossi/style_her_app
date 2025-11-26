@@ -9,16 +9,12 @@
 
 import 'package:flutter/material.dart';
 
-// Screen imports
-import 'package:frontend/routes.dart';
-
-// Theme imports
-import '../main.dart';
-
 // --- ADD THIS IMPORT ---
 // This is the file that contains your MainNavigationScreen
 import 'bottom_navigation_screen.dart';
 // --- END IMPORT ---
+
+const Color kPrimaryColor = Color(0xFF2C5BB1);
 
 /**
  * Interest Selection Screen

@@ -14,32 +14,37 @@ class AdminService {
 
   // ========== COURSE OPERATIONS ==========
 
+  /// Create a new course in Firestore
+  /// Returns the document ID of the created course
   Future<String> createCourse(Map<String, dynamic> courseData) async {
     try {
+      // Add course with default values for new courses
       final docRef = await _firestore.collection('courses').add({
-        ...courseData,
-        'createdAt': FieldValue.serverTimestamp(),
+        ...courseData, // Spread provided course data
+        'createdAt': FieldValue.serverTimestamp(), // Server timestamp for creation
         'updatedAt': FieldValue.serverTimestamp(),
-        'enrolledCount': 0,
-        'rating': 0.0,
+        'enrolledCount': 0, // Initialize enrollment count
+        'rating': 0.0, // Initialize rating
       });
-      return docRef.id;
+      return docRef.id; // Return new course ID
     } catch (e) {
       throw Exception('Failed to create course: $e');
     }
   }
 
+  /// Update an existing course in Firestore
   Future<void> updateCourse(String courseId, Map<String, dynamic> courseData) async {
     try {
       await _firestore.collection('courses').doc(courseId).update({
-        ...courseData,
-        'updatedAt': FieldValue.serverTimestamp(),
+        ...courseData, // Spread updated course data
+        'updatedAt': FieldValue.serverTimestamp(), // Always update timestamp
       });
     } catch (e) {
       throw Exception('Failed to update course: $e');
     }
   }
 
+  /// Delete a course from Firestore
   Future<void> deleteCourse(String courseId) async {
     try {
       await _firestore.collection('courses').doc(courseId).delete();
@@ -48,6 +53,7 @@ class AdminService {
     }
   }
 
+  /// Get real-time stream of all courses, ordered by creation date (newest first)
   Stream<QuerySnapshot> getCoursesStream() {
     return _firestore.collection('courses').orderBy('createdAt', descending: true).snapshots();
   }

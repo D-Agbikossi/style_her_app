@@ -48,18 +48,22 @@ class EmailVerificationScreen extends StatelessWidget {
                     if (user != null && user.emailVerified) {
                       // --- THIS IS THE FIX ---
                       // Don't pop. Navigate to the next step.
-                      Navigator.of(
-                        context,
-                      ).pushReplacementNamed(AppRoutes.interest);
+                      if (context.mounted) {
+                        Navigator.of(
+                          context,
+                        ).pushReplacementNamed(AppRoutes.interest);
+                      }
                       // --- END FIX ---
                     } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                           content: Text(
                             'Email not verified yet. Please check your email.',
                           ),
                         ),
                       );
+                      }
                     }
                   },
                   child: const Text('I\'ve Verified My Email'),
@@ -73,9 +77,11 @@ class EmailVerificationScreen extends StatelessWidget {
                     listen: false,
                   );
                   await authProvider.resendEmailVerification();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Verification email sent!')),
-                  );
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Verification email sent!')),
+                    );
+                  }
                 },
                 child: const Text(
                   'Resend Verification Email',

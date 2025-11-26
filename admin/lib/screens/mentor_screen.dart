@@ -299,6 +299,46 @@ class _MentorCard extends StatelessWidget {
     required this.onOptionsTap,
   });
 
+  Widget _buildProfilePicture({String? photoUrl, required double radius}) {
+    return Container(
+      width: radius * 2,
+      height: radius * 2,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: Colors.grey[300],
+      ),
+      child: ClipOval(
+        child: photoUrl != null && photoUrl.isNotEmpty
+            ? Image.network(
+                photoUrl,
+                fit: BoxFit.cover,
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return Center(
+                    child: CircularProgressIndicator(
+                      value: loadingProgress.expectedTotalBytes != null
+                          ? loadingProgress.cumulativeBytesLoaded /
+                              loadingProgress.expectedTotalBytes!
+                          : null,
+                      strokeWidth: 2,
+                    ),
+                  );
+                },
+                errorBuilder: (context, error, stackTrace) => Icon(
+                  Icons.person,
+                  size: radius,
+                  color: Colors.grey[600],
+                ),
+              )
+            : Icon(
+                Icons.person,
+                size: radius,
+                color: Colors.grey[600],
+              ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isActive = status == 'active';
@@ -321,10 +361,9 @@ class _MentorCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              CircleAvatar(
+              _buildProfilePicture(
+                photoUrl: mentorData['photoUrl'],
                 radius: 28,
-                backgroundColor: Colors.grey[300],
-                child: const Icon(Icons.person, size: 28),
               ),
               const SizedBox(width: 12),
               Expanded(

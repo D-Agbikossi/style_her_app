@@ -10,23 +10,18 @@
  * - Real-time category loading from Firestore
  */
 
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:image_picker/image_picker.dart';
 
 // Model imports
 import '../models/course.dart';
 
 // Service imports
 import '../services/admin_service.dart';
-import '../services/storage_service.dart';
 
 // Utils imports
 import '../utils/validators.dart';
-
-// Route imports
-import '../routes.dart';
+import '../utils/error_handler.dart';
 
 // Theme imports
 import '../main.dart';
@@ -52,7 +47,6 @@ class _AddEditCourseScreenState extends State<AddEditCourseScreen> {
   // Form state
   final _formKey = GlobalKey<FormState>();
   final _adminService = AdminService();
-  final _storageService = StorageService();
   
   // Form controllers
   final _titleController = TextEditingController();
@@ -67,25 +61,14 @@ class _AddEditCourseScreenState extends State<AddEditCourseScreen> {
   final List<TextEditingController> _videoUrlControllers = [];
   final List<TextEditingController> _pictureUrlControllers = [];
   
-  // File uploads
-  File? _thumbnailFile;
-  final List<File> _videoFiles = [];
-  final List<File> _pictureFiles = [];
-  final List<String> _uploadedVideoUrls = [];
-  final List<String> _uploadedPictureUrls = [];
+  // Note: File uploads removed - using URL-only approach
 
   // Selection state
   String _selectedCategory = 'Make Up';
   String _selectedDifficulty = 'Beginner';
   bool _isFree = false;
   bool _isLoading = false;
-  bool _isUploading = false;
   List<String> _categories = ['Make Up', 'Hair Styling', 'Hair Making', 'Nail Care', 'Arts'];
-  
-  // Upload progress tracking
-  double _uploadProgress = 0.0;
-  String _uploadStatus = '';
-  final Map<int, double> _fileProgress = {}; // Track individual file progress
 
 
   Future<void> _loadCategories() async {
@@ -167,14 +150,29 @@ class _AddEditCourseScreenState extends State<AddEditCourseScreen> {
     super.dispose();
   }
 
+  /// Save course to Firestore with URL validation
+  /// Handles both create and update operations
   Future<void> _saveCourse() async {
+    // Validate form fields first
     if (!_formKey.currentState!.validate()) return;
     
-    // Validate that at least thumbnail URL or file is provided
-    if (_thumbnailUrlController.text.trim().isEmpty && _thumbnailFile == null) {
+    // Thumbnail URL is required (no file upload fallback)
+    if (_thumbnailUrlController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please provide a thumbnail (upload file or enter URL)'),
+          content: Text('Please provide a thumbnail URL'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    // Validate thumbnail URL format (must be valid HTTP/HTTPS URL)
+    final thumbnailUrlError = Validators.url(_thumbnailUrlController.text.trim());
+    if (thumbnailUrlError != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Invalid thumbnail URL: $thumbnailUrlError'),
           backgroundColor: Colors.red,
         ),
       );
@@ -183,104 +181,100 @@ class _AddEditCourseScreenState extends State<AddEditCourseScreen> {
 
     setState(() {
       _isLoading = true;
-      _isUploading = true;
     });
 
     try {
-      String thumbnailUrl = _thumbnailUrlController.text.trim();
-      
-      // Upload thumbnail if file is selected
-      if (_thumbnailFile != null) {
-        setState(() {
-          _uploadStatus = 'Uploading thumbnail...';
-          _uploadProgress = 0.0;
-        });
-        thumbnailUrl = await _storageService.uploadFile(
-          file: _thumbnailFile!,
-          path: 'courses/thumbnails/',
-          onProgress: (progress) {
-            if (mounted) {
-              setState(() => _uploadProgress = progress);
-            }
-          },
-        );
-      }
+      final String thumbnailUrl = _thumbnailUrlController.text.trim();
 
-      // Upload video files
-      if (_videoFiles.isNotEmpty) {
-        setState(() {
-          _uploadStatus = 'Uploading ${_videoFiles.length} video(s)...';
-          _uploadProgress = 0.0;
-          _fileProgress.clear();
-        });
-        final uploadedUrls = await _storageService.uploadMultipleFiles(
-          files: _videoFiles,
-          path: 'courses/videos/',
-          onProgress: (overallProgress) {
+      // Collect and validate video URLs (filter empty, validate format)
+      final videoUrls = <String>[];
+      for (int i = 0; i < _videoUrlControllers.length; i++) {
+        final controller = _videoUrlControllers[i];
+        final url = controller.text.trim();
+        if (url.isNotEmpty) {
+          // Validate each URL format before adding
+          final error = Validators.url(url);
+          if (error != null) {
+            // Show user-friendly error with video number and specific issue
+            final videoNumber = i + 1;
             if (mounted) {
-              setState(() => _uploadProgress = overallProgress);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Invalid Video URL #$videoNumber',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(error),
+                      if (url.length <= 60) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          'URL: $url',
+                          style: TextStyle(fontSize: 12, color: Colors.white70),
+                        ),
+                      ],
+                    ],
+                  ),
+                  backgroundColor: Colors.red,
+                  duration: const Duration(seconds: 6),
+                ),
+              );
             }
-          },
-          onFileProgress: (fileIndex, fileProgress) {
-            if (mounted) {
-              setState(() {
-                _fileProgress[fileIndex] = fileProgress;
-                _uploadStatus = 'Uploading video ${fileIndex + 1}/${_videoFiles.length}...';
-              });
-            }
-          },
-        );
-        _uploadedVideoUrls.addAll(uploadedUrls);
-      }
-
-      // Upload picture files
-      if (_pictureFiles.isNotEmpty) {
-        setState(() {
-          _uploadStatus = 'Uploading ${_pictureFiles.length} image(s)...';
-          _uploadProgress = 0.0;
-          _fileProgress.clear();
-        });
-        final uploadedUrls = await _storageService.uploadMultipleFiles(
-          files: _pictureFiles,
-          path: 'courses/pictures/',
-          onProgress: (overallProgress) {
-            if (mounted) {
-              setState(() => _uploadProgress = overallProgress);
-            }
-          },
-          onFileProgress: (fileIndex, fileProgress) {
-            if (mounted) {
-              setState(() {
-                _fileProgress[fileIndex] = fileProgress;
-                _uploadStatus = 'Uploading image ${fileIndex + 1}/${_pictureFiles.length}...';
-              });
-            }
-          },
-        );
-        _uploadedPictureUrls.addAll(uploadedUrls);
+            throw Exception('Invalid video URL #$videoNumber: $error');
+          }
+          videoUrls.add(url);
+        }
       }
       
-      setState(() {
-        _uploadStatus = 'Saving course data...';
-        _uploadProgress = 1.0;
-      });
-
-      // Collect video URLs (from both uploads and manual URLs)
-      final videoUrls = [
-        ..._uploadedVideoUrls,
-        ..._videoUrlControllers
-            .map((c) => c.text.trim())
-            .where((url) => url.isNotEmpty && Validators.url(url) == null),
-      ];
+      // Collect and validate picture URLs (filter empty, validate format)
+      final pictureUrls = <String>[];
+      for (int i = 0; i < _pictureUrlControllers.length; i++) {
+        final controller = _pictureUrlControllers[i];
+        final url = controller.text.trim();
+        if (url.isNotEmpty) {
+          // Validate each URL format before adding
+          final error = Validators.url(url);
+          if (error != null) {
+            // Show user-friendly error with image number and specific issue
+            final imageNumber = i + 1;
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Invalid Image URL #$imageNumber',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(error),
+                      if (url.length <= 60) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          'URL: $url',
+                          style: TextStyle(fontSize: 12, color: Colors.white70),
+                        ),
+                      ],
+                    ],
+                  ),
+                  backgroundColor: Colors.red,
+                  duration: const Duration(seconds: 6),
+                ),
+              );
+            }
+            throw Exception('Invalid picture URL #$imageNumber: $error');
+          }
+          pictureUrls.add(url);
+        }
+      }
       
-      // Collect picture URLs (from both uploads and manual URLs)
-      final pictureUrls = [
-        ..._uploadedPictureUrls,
-        ..._pictureUrlControllers
-            .map((c) => c.text.trim())
-            .where((url) => url.isNotEmpty && Validators.url(url) == null),
-      ];
-      
+      // Build course data map for Firestore
       final courseData = <String, dynamic>{
         'title': _titleController.text.trim(),
         'description': _descriptionController.text.trim(),
@@ -288,21 +282,24 @@ class _AddEditCourseScreenState extends State<AddEditCourseScreen> {
         'difficulty': _selectedDifficulty,
         'instructor': _instructorController.text.trim(),
         'thumbnailUrl': thumbnailUrl,
-        'videoUrls': videoUrls,
-        'pictureUrls': pictureUrls,
-        'duration': int.tryParse(_durationController.text) ?? 0,
-        'lessonCount': int.tryParse(_lessonCountController.text) ?? 0,
+        'videoUrls': videoUrls, // List of video URLs (required)
+        'pictureUrls': pictureUrls, // List of picture URLs (optional, can be empty)
+        'duration': int.tryParse(_durationController.text) ?? 0, // Default to 0 if invalid
+        'lessonCount': int.tryParse(_lessonCountController.text) ?? 0, // Default to 0 if invalid
         'isFree': _isFree,
+        // Price is null for free courses, otherwise parse or default to 0.0
         'price': _isFree ? null : (double.tryParse(_priceController.text) ?? 0.0),
       };
       
+      // Add timestamp fields
       if (widget.course == null) {
+        // New course: set creation timestamp
         courseData['createdAt'] = FieldValue.serverTimestamp();
       }
+      // Always update the updatedAt timestamp
       courseData['updatedAt'] = FieldValue.serverTimestamp();
 
-      setState(() => _isUploading = false);
-
+      // Save to Firestore (create or update)
       if (widget.course != null) {
         await _adminService.updateCourse(widget.course!.id, courseData);
       } else {
@@ -316,113 +313,55 @@ class _AddEditCourseScreenState extends State<AddEditCourseScreen> {
             backgroundColor: Colors.green,
           ),
         );
-        Navigator.of(context).pop(true);
+        Navigator.of(context).pop(true); // Return success to previous screen
       }
     } catch (e) {
+      // Error is handled below with user-friendly message
       if (mounted) {
+        // Use ErrorHandler for user-friendly error messages
+        final friendlyMessage = ErrorHandler.getUserFriendlyMessage(e);
+        
+        // Show detailed error dialog for debugging
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: ${e.toString()}'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Error Saving Course',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+                const SizedBox(height: 8),
+                Text(friendlyMessage),
+                const SizedBox(height: 4),
+                Text(
+                  'Details: ${e.toString()}',
+                  style: const TextStyle(fontSize: 12, color: Colors.white70),
+                ),
+              ],
+            ),
             backgroundColor: Colors.red,
+            duration: const Duration(seconds: 8),
+            action: SnackBarAction(
+              label: 'Dismiss',
+              textColor: Colors.white,
+              onPressed: () {},
+            ),
           ),
         );
       }
     } finally {
+      // Always reset loading state
       if (mounted) {
         setState(() {
           _isLoading = false;
-          _isUploading = false;
         });
       }
     }
   }
 
-  Future<void> _pickThumbnail() async {
-    final source = await showDialog<ImageSource>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Select Image Source'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.photo_library),
-              title: const Text('Gallery'),
-              onTap: () => Navigator.pop(context, ImageSource.gallery),
-            ),
-            ListTile(
-              leading: const Icon(Icons.camera_alt),
-              title: const Text('Camera'),
-              onTap: () => Navigator.pop(context, ImageSource.camera),
-            ),
-          ],
-        ),
-      ),
-    );
-
-    if (source != null) {
-      final file = await _storageService.pickImage(source);
-      if (file != null && mounted) {
-        setState(() {
-          _thumbnailFile = file;
-          _thumbnailUrlController.clear();
-        });
-      }
-    }
-  }
-
-  Future<void> _pickVideos() async {
-    final source = await showDialog<ImageSource>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Select Video Source'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.video_library),
-              title: const Text('Gallery'),
-              onTap: () => Navigator.pop(context, ImageSource.gallery),
-            ),
-            ListTile(
-              leading: const Icon(Icons.videocam),
-              title: const Text('Camera'),
-              onTap: () => Navigator.pop(context, ImageSource.camera),
-            ),
-            ListTile(
-              leading: const Icon(Icons.folder),
-              title: const Text('File Picker'),
-              onTap: () => Navigator.pop(context, ImageSource.gallery), // Use file picker
-            ),
-          ],
-        ),
-      ),
-    );
-
-    if (source != null) {
-      if (source == ImageSource.gallery) {
-        // Use file picker for better video selection
-        final file = await _storageService.pickFile(
-          allowedExtensions: ['mp4', 'mov', 'avi', 'mkv'],
-        );
-        if (file != null && mounted) {
-          setState(() => _videoFiles.add(file));
-        }
-      } else {
-        final file = await _storageService.pickVideo(source);
-        if (file != null && mounted) {
-          setState(() => _videoFiles.add(file));
-        }
-      }
-    }
-  }
-
-  Future<void> _pickPictures() async {
-    final files = await _storageService.pickMultipleImages();
-    if (files.isNotEmpty && mounted) {
-      setState(() => _pictureFiles.addAll(files));
-    }
-  }
+  // File upload methods removed - using URL-only approach
 
   @override
   Widget build(BuildContext context) {
@@ -478,68 +417,68 @@ class _AddEditCourseScreenState extends State<AddEditCourseScreen> {
               const SizedBox(height: 16),
               
               // Thumbnail Section
-              Text(
-                'Thumbnail',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 8),
               Row(
                 children: [
-                  Expanded(
-                    child: _buildTextField(
-                      controller: _thumbnailUrlController,
-                      label: 'Thumbnail URL (optional if uploading)',
-                      icon: Icons.link,
-                      validator: (v) => Validators.url(v, required: false),
+                  Text(
+                    'Thumbnail URL',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(width: 8),
-                  ElevatedButton.icon(
-                    onPressed: _isLoading ? null : _pickThumbnail,
-                    icon: const Icon(Icons.upload_file),
-                    label: const Text('Upload'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: kPrimaryColor,
-                      foregroundColor: Colors.white,
+                  IconButton(
+                    icon: const Icon(Icons.help_outline, size: 18),
+                    color: kPrimaryColor,
+                    onPressed: () => _showHostingHelpDialog(
+                      context,
+                      title: 'Where to Host Images',
+                      content: 'Upload your thumbnail image to:\n\n'
+                          '• Cloudinary (Recommended): https://cloudinary.com\n'
+                          '  - Free tier: 25GB storage\n'
+                          '  - Get direct URL after upload\n\n'
+                          '• ImgBB: https://imgbb.com\n'
+                          '  - Free, no account needed\n\n'
+                          '• Imgur: https://imgur.com\n'
+                          '  - Free, easy to use\n\n'
+                          'Then paste the direct image URL here.',
                     ),
+                    tooltip: 'Where to host images?',
                   ),
                 ],
               ),
-              if (_thumbnailFile != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: 8.0),
-                  child: Row(
-                    children: [
-                      Icon(Icons.check_circle, color: Colors.green, size: 16),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          'File selected: ${_thumbnailFile!.path.split('/').last}',
-                          style: TextStyle(fontSize: 12, color: Colors.green[700]),
-                        ),
-                      ),
-                      TextButton(
-                        onPressed: () => setState(() => _thumbnailFile = null),
-                        child: const Text('Remove'),
-                      ),
-                    ],
-                  ),
-                ),
+              const SizedBox(height: 8),
+              _buildTextField(
+                controller: _thumbnailUrlController,
+                label: 'Thumbnail URL (required)',
+                icon: Icons.link,
+                validator: (v) => Validators.url(v, required: true),
+                hintText: 'https://res.cloudinary.com/... or https://i.imgur.com/...',
+              ),
               const SizedBox(height: 16),
               
               // Video URLs Section
               _buildMediaSection(
-                title: 'Videos',
+                title: 'Video URLs',
                 controllers: _videoUrlControllers,
                 icon: Icons.video_library,
-                videoFiles: _videoFiles,
                 onAdd: () {
-                  setState(() {
-                    _videoUrlControllers.add(TextEditingController());
-                  });
+                  try {
+                    setState(() {
+                      _videoUrlControllers.add(TextEditingController());
+                    });
+                  } catch (e) {
+                    // Handle any errors when adding a new field
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Error adding video URL field: ${ErrorHandler.getUserFriendlyMessage(e)}'),
+                          backgroundColor: Colors.red,
+                          duration: const Duration(seconds: 4),
+                        ),
+                      );
+                    }
+                  }
                 },
                 onRemove: (index) {
                   if (_videoUrlControllers.length > 1) {
@@ -549,23 +488,42 @@ class _AddEditCourseScreenState extends State<AddEditCourseScreen> {
                     });
                   }
                 },
-                onUpload: _pickVideos,
-                onRemoveFile: (index) {
-                  setState(() => _videoFiles.removeAt(index));
-                },
+                showHelp: true,
+                helpTitle: 'Where to Host Videos',
+                helpContent: 'Upload your videos to:\n\n'
+                    '• YouTube (Recommended): https://youtube.com\n'
+                    '  - Free, unlimited storage\n'
+                    '  - Use format: https://www.youtube.com/watch?v=VIDEO_ID\n\n'
+                    '• Vimeo: https://vimeo.com\n'
+                    '  - Free tier: 500MB/week\n\n'
+                    '• Cloudinary: https://cloudinary.com\n'
+                    '  - Free tier: 25GB storage\n\n'
+                    'Then paste the video URL here.',
               ),
               const SizedBox(height: 16),
               
               // Picture URLs Section
               _buildMediaSection(
-                title: 'Pictures',
+                title: 'Picture URLs',
                 controllers: _pictureUrlControllers,
                 icon: Icons.photo_library,
-                pictureFiles: _pictureFiles,
                 onAdd: () {
-                  setState(() {
-                    _pictureUrlControllers.add(TextEditingController());
-                  });
+                  try {
+                    setState(() {
+                      _pictureUrlControllers.add(TextEditingController());
+                    });
+                  } catch (e) {
+                    // Handle any errors when adding a new field
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Error adding image URL field: ${ErrorHandler.getUserFriendlyMessage(e)}'),
+                          backgroundColor: Colors.red,
+                          duration: const Duration(seconds: 4),
+                        ),
+                      );
+                    }
+                  }
                 },
                 onRemove: (index) {
                   if (_pictureUrlControllers.length > 1) {
@@ -575,10 +533,17 @@ class _AddEditCourseScreenState extends State<AddEditCourseScreen> {
                     });
                   }
                 },
-                onUpload: _pickPictures,
-                onRemoveFile: (index) {
-                  setState(() => _pictureFiles.removeAt(index));
-                },
+                showHelp: true,
+                helpTitle: 'Where to Host Images',
+                helpContent: 'Upload your images to:\n\n'
+                    '• Cloudinary (Recommended): https://cloudinary.com\n'
+                    '  - Free tier: 25GB storage\n'
+                    '  - Get direct URL after upload\n\n'
+                    '• ImgBB: https://imgbb.com\n'
+                    '  - Free, no account needed\n\n'
+                    '• Imgur: https://imgur.com\n'
+                    '  - Free, easy to use\n\n'
+                    'Then paste the direct image URL here.',
               ),
               const SizedBox(height: 16),
               Row(
@@ -633,56 +598,21 @@ class _AddEditCourseScreenState extends State<AddEditCourseScreen> {
                     ),
                   ),
                   child: _isLoading
-                      ? Column(
-                          mainAxisSize: MainAxisSize.min,
+                      ? Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            if (_isUploading && _uploadProgress > 0)
-                              Padding(
-                                padding: const EdgeInsets.only(bottom: 8.0),
-                                child: Column(
-                                  children: [
-                                    LinearProgressIndicator(
-                                      value: _uploadProgress,
-                                      backgroundColor: Colors.white.withOpacity(0.3),
-                                      valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      '${(_uploadProgress * 100).toStringAsFixed(0)}%',
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.white70,
-                                      ),
-                                    ),
-                                    if (_uploadStatus.isNotEmpty)
-                                      Text(
-                                        _uploadStatus,
-                                        style: const TextStyle(
-                                          fontSize: 11,
-                                          color: Colors.white70,
-                                        ),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                  ],
-                                ),
+                            const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
                               ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    color: Colors.white,
-                                    strokeWidth: 2,
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Text(
-                                  _isUploading ? 'Uploading...' : 'Saving...',
-                                  style: const TextStyle(fontSize: 16),
-                                ),
-                              ],
+                            ),
+                            const SizedBox(width: 12),
+                            const Text(
+                              'Saving...',
+                              style: TextStyle(fontSize: 16),
                             ),
                           ],
                         )
@@ -709,11 +639,13 @@ class _AddEditCourseScreenState extends State<AddEditCourseScreen> {
     int maxLines = 1,
     TextInputType? keyboardType,
     String? Function(String?)? validator,
+    String? hintText,
   }) {
     return TextFormField(
       controller: controller,
       decoration: InputDecoration(
         labelText: label,
+        hintText: hintText,
         prefixIcon: Icon(icon),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -756,13 +688,11 @@ class _AddEditCourseScreenState extends State<AddEditCourseScreen> {
     required IconData icon,
     required VoidCallback onAdd,
     required Function(int) onRemove,
-    List<File>? videoFiles,
-    List<File>? pictureFiles,
-    VoidCallback? onUpload,
-    Function(int)? onRemoveFile,
+    bool showHelp = false,
+    String? helpTitle,
+    String? helpContent,
   }) {
-    final files = videoFiles ?? pictureFiles ?? [];
-    final isVideo = videoFiles != null;
+    final isVideo = title.toLowerCase().contains('video');
     
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -770,119 +700,41 @@ class _AddEditCourseScreenState extends State<AddEditCourseScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
             Row(
-              mainAxisSize: MainAxisSize.min,
               children: [
-                if (onUpload != null)
-                  TextButton.icon(
-                    onPressed: _isLoading ? null : onUpload,
-                    icon: const Icon(Icons.upload_file, size: 18),
-                    label: Text(isVideo ? 'Upload Video' : 'Upload Images'),
-                    style: TextButton.styleFrom(
-                      foregroundColor: kPrimaryColor,
-                    ),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
                   ),
-                IconButton(
-                  icon: const Icon(Icons.add_circle),
-                  onPressed: onAdd,
-                  color: kPrimaryColor,
-                  tooltip: 'Add URL field',
                 ),
+                if (showHelp) ...[
+                  const SizedBox(width: 8),
+                  IconButton(
+                    icon: const Icon(Icons.help_outline, size: 18),
+                    color: kPrimaryColor,
+                    onPressed: () => _showHostingHelpDialog(
+                      context,
+                      title: helpTitle ?? 'Where to Host Files',
+                      content: helpContent ?? 'Upload your files to a hosting service and paste the URL here.',
+                    ),
+                    tooltip: 'Where to host files?',
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+                ],
               ],
+            ),
+            IconButton(
+              icon: const Icon(Icons.add_circle),
+              onPressed: onAdd,
+              color: kPrimaryColor,
+              tooltip: 'Add URL field',
             ),
           ],
         ),
         const SizedBox(height: 8),
-        
-        // Show uploaded files
-        if (files.isNotEmpty)
-          ...files.asMap().entries.map((entry) {
-            final index = entry.key;
-            final file = entry.value;
-            final fileProgress = _fileProgress[index] ?? 0.0;
-            final isUploading = _isUploading && fileProgress < 1.0;
-            
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 8.0),
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: isUploading ? Colors.blue[50] : Colors.green[50],
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: isUploading ? Colors.blue[200]! : Colors.green[200]!,
-                  ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        if (isUploading)
-                          SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              value: fileProgress,
-                              strokeWidth: 2,
-                              color: Colors.blue[700],
-                            ),
-                          )
-                        else
-                          Icon(Icons.check_circle, color: Colors.green[700], size: 20),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            file.path.split('/').last,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: isUploading ? Colors.blue[900] : Colors.green[900],
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        if (!_isLoading)
-                          IconButton(
-                            icon: const Icon(Icons.close, size: 18),
-                            color: Colors.red,
-                            onPressed: () => onRemoveFile?.call(index),
-                          ),
-                      ],
-                    ),
-                    if (isUploading && fileProgress > 0)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 8.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            LinearProgressIndicator(
-                              value: fileProgress,
-                              backgroundColor: Colors.blue[100],
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.blue[700]!),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              '${(fileProgress * 100).toStringAsFixed(0)}%',
-                              style: TextStyle(
-                                fontSize: 10,
-                                color: Colors.blue[700],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            );
-          }).toList(),
         
         // URL input fields
         ...controllers.asMap().entries.map((entry) {
@@ -896,7 +748,10 @@ class _AddEditCourseScreenState extends State<AddEditCourseScreen> {
                   child: TextFormField(
                     controller: controller,
                     decoration: InputDecoration(
-                      labelText: '${title} URL ${index + 1} (optional)',
+                      labelText: '${isVideo ? "Video" : "Image"} URL ${index + 1}',
+                      hintText: isVideo 
+                          ? 'https://www.youtube.com/watch?v=... or https://vimeo.com/...'
+                          : 'https://res.cloudinary.com/... or https://i.imgur.com/...',
                       prefixIcon: Icon(icon),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -904,7 +759,9 @@ class _AddEditCourseScreenState extends State<AddEditCourseScreen> {
                       filled: true,
                       fillColor: Colors.white,
                     ),
-                    validator: (v) => Validators.url(v, required: false),
+                    validator: (v) => v != null && v.trim().isNotEmpty 
+                        ? Validators.url(v) 
+                        : null,
                   ),
                 ),
                 if (controllers.length > 1)
@@ -915,8 +772,35 @@ class _AddEditCourseScreenState extends State<AddEditCourseScreen> {
               ],
             ),
           );
-        }).toList(),
+        }),
       ],
+    );
+  }
+
+  void _showHostingHelpDialog(BuildContext context, {required String title, required String content}) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.info_outline, color: kPrimaryColor),
+            const SizedBox(width: 8),
+            Expanded(child: Text(title)),
+          ],
+        ),
+        content: SingleChildScrollView(
+          child: Text(
+            content,
+            style: const TextStyle(fontSize: 14, height: 1.5),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Got it'),
+          ),
+        ],
+      ),
     );
   }
 }

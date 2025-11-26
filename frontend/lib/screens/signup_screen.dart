@@ -11,20 +11,13 @@
  */
 
 import 'package:flutter/material.dart';
-import 'package:frontend/routes.dart';
 import 'package:provider/provider.dart';
-
-// Screen imports
-import 'package:frontend/screens/login_screen.dart';
 
 // Provider imports
 import 'package:frontend/blocs/auth_bloc.dart';
 
 // Services imports
 import '../services/google_auth_service.dart';
-
-// Theme imports
-import '../main.dart';
 
 // Utils imports
 import '../utils/validators.dart';
@@ -398,11 +391,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }) {
     final screenHeight = MediaQuery.of(context).size.height;
     final isSmallScreen = screenHeight < 700;
-
-    IconData iconData = Icons.error;
-    if (label.contains("Google")) iconData = Icons.g_mobiledata;
-    if (label.contains("Facebook")) iconData = Icons.facebook;
-    if (label.contains("Apple")) iconData = Icons.apple;
 
     return SizedBox(
       width: double.infinity,
