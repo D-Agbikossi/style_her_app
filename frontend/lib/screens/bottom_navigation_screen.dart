@@ -4,9 +4,8 @@ import 'home_screen.dart';
 import 'my_courses_screen.dart';
 import 'inbox.dart';
 import 'marketplace.dart';
-import 'edit_profile.dart';
+import '../screens/profile_screen.dart';
 import '../main.dart' as app_main;
-
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
@@ -23,7 +22,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     MyCoursesScreen(),
     InboxScreen(),
     MarketplaceScreen(),
-    EditProfileScreen(),
+    ProfileScreen(),
   ];
 
   void _onItemTapped(int index) {
