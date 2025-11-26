@@ -207,7 +207,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   style: TextStyle(
                     fontSize: isSmallScreen ? 20 : 24,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF4A6FDB),
+                    color: const Color(0xFF6B86D4),
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -357,7 +357,7 @@ class _HomeScreenState extends State<HomeScreen> {
           count: _bannerCount,
           effect: WormEffect(
             dotColor: Colors.grey,
-            activeDotColor: const Color(0xFF4A6FDB),
+            activeDotColor: Color(0xFF6B86D4),
             dotHeight: 8,
             dotWidth: 8,
           ),
