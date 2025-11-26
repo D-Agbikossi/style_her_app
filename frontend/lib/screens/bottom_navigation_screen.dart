@@ -4,9 +4,8 @@ import 'home_screen.dart';
 import 'my_courses_screen.dart';
 import 'inbox.dart';
 import 'marketplace.dart';
-import 'profile_screen.dart';
+import '../screens/profile_screen.dart';
 import '../main.dart' as app_main;
-
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
