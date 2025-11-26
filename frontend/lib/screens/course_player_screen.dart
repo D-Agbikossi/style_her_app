@@ -1,7 +1,6 @@
 /**
  * Course Player Screen - Full Screen Video Playback
- * 
- * This screen provides full-screen video playback for course lessons with:
+ * * This screen provides full-screen video playback for course lessons with:
  * - Full-screen video player
  * - Course information
  * - Bottom navigation tabs: Overview, Lessons, Resources, Reviews
@@ -16,7 +15,7 @@ import '../models/course.dart';
 import '../widgets/video_player_widget.dart';
 import '../routes.dart';
 
-const Color kPrimaryColor = Color(0xFF2C5BB1);
+const Color kPrimaryColor = Color(0xFF6B86D4);
 
 /**
  * Course Player Screen
@@ -53,7 +52,10 @@ class _CoursePlayerScreenState extends State<CoursePlayerScreen>
 
   Future<void> _loadCourse() async {
     try {
-      final courseProvider = Provider.of<CourseProvider>(context, listen: false);
+      final courseProvider = Provider.of<CourseProvider>(
+        context,
+        listen: false,
+      );
       // Some provider implementations return the Course, others return void and store the result internally.
       // Await the fetch call first.
       await courseProvider.fetchCourseById(widget.courseId);
@@ -84,7 +86,8 @@ class _CoursePlayerScreenState extends State<CoursePlayerScreen>
           _course = fetchedCourse;
           _isLoading = false;
           // Ensure video index is valid
-          if (_course != null && _currentVideoIndex >= _course!.videoUrls.length) {
+          if (_course != null &&
+              _currentVideoIndex >= _course!.videoUrls.length) {
             _currentVideoIndex = 0;
           }
         });
@@ -94,9 +97,9 @@ class _CoursePlayerScreenState extends State<CoursePlayerScreen>
         setState(() {
           _isLoading = false;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading course: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error loading course: $e')));
       }
     }
   }
@@ -150,22 +153,24 @@ class _CoursePlayerScreenState extends State<CoursePlayerScreen>
             // Video Player Section
             Expanded(
               flex: 2,
-              child: _course!.videoUrls.isEmpty
-                  ? Container(
-                      color: Colors.black,
-                      child: const Center(
+              child: Container(
+                color: Colors.black, // Ensure background is black
+                width: double.infinity,
+                child: _course!.videoUrls.isEmpty
+                    ? const Center(
                         child: Icon(
                           Icons.videocam_off,
                           color: Colors.white30,
                           size: 60,
                         ),
+                      )
+                    : VideoPlayerWidget(
+                        key: ValueKey(_course!.videoUrls[_currentVideoIndex]),
+                        videoUrl: _course!.videoUrls[_currentVideoIndex],
+                        autoPlay: true,
+                        showControls: true,
                       ),
-                    )
-                  : VideoPlayerWidget(
-                      videoUrl: _course!.videoUrls[_currentVideoIndex],
-                      autoPlay: true,
-                      showControls: true,
-                    ),
+              ),
             ),
 
             // Course Info and Tabs Section
@@ -239,13 +244,13 @@ class _CoursePlayerScreenState extends State<CoursePlayerScreen>
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: kPrimaryColor,
                                 foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                ),
                               ),
                               child: const Text(
                                 'Continue Learning',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                ),
+                                style: TextStyle(fontWeight: FontWeight.w600),
                               ),
                             ),
                           ),
@@ -297,10 +302,7 @@ class _CoursePlayerScreenState extends State<CoursePlayerScreen>
         children: [
           const Text(
             'Description',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
           Text(
@@ -310,10 +312,7 @@ class _CoursePlayerScreenState extends State<CoursePlayerScreen>
           const SizedBox(height: 24),
           const Text(
             "What you'll learn",
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
           _buildFeatureItem(Icons.check_circle, 'Learn from industry experts'),
@@ -327,9 +326,7 @@ class _CoursePlayerScreenState extends State<CoursePlayerScreen>
 
   Widget _buildLessonsTab(Course course) {
     if (course.videoUrls.isEmpty) {
-      return const Center(
-        child: Text('No lessons available'),
-      );
+      return const Center(child: Text('No lessons available'));
     }
 
     return ListView.builder(
@@ -340,7 +337,9 @@ class _CoursePlayerScreenState extends State<CoursePlayerScreen>
         return Container(
           margin: const EdgeInsets.only(bottom: 12),
           decoration: BoxDecoration(
-            color: isSelected ? kPrimaryColor.withOpacity(0.1) : Colors.grey[50],
+            color: isSelected
+                ? kPrimaryColor.withOpacity(0.1)
+                : Colors.grey[50],
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
               color: isSelected ? kPrimaryColor : Colors.transparent,
@@ -391,13 +390,14 @@ class _CoursePlayerScreenState extends State<CoursePlayerScreen>
         children: [
           const Text(
             'Course Resources',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
-          _buildResourceItem(Icons.description, 'Course Materials', 'Download PDF'),
+          _buildResourceItem(
+            Icons.description,
+            'Course Materials',
+            'Download PDF',
+          ),
           _buildResourceItem(Icons.image, 'Reference Images', 'View Gallery'),
           _buildResourceItem(Icons.link, 'External Links', 'Visit Resources'),
           _buildResourceItem(Icons.quiz, 'Practice Quizzes', 'Take Quiz'),
@@ -417,10 +417,7 @@ class _CoursePlayerScreenState extends State<CoursePlayerScreen>
             children: [
               const Text(
                 'Reviews',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               TextButton(
                 onPressed: () {
@@ -435,8 +432,11 @@ class _CoursePlayerScreenState extends State<CoursePlayerScreen>
             ],
           ),
           const SizedBox(height: 16),
-          // Sample reviews - in production, fetch from database
-          _buildReviewItem('Sarah M.', 5, 'Amazing course! Very detailed and helpful.'),
+          _buildReviewItem(
+            'Sarah M.',
+            5,
+            'Amazing course! Very detailed and helpful.',
+          ),
           _buildReviewItem('Jane D.', 4, 'Great content, learned a lot.'),
           _buildReviewItem('Mary K.', 5, 'Highly recommend this course!'),
         ],
@@ -451,12 +451,7 @@ class _CoursePlayerScreenState extends State<CoursePlayerScreen>
         children: [
           Icon(icon, color: kPrimaryColor, size: 20),
           const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              text,
-              style: const TextStyle(fontSize: 14),
-            ),
-          ),
+          Expanded(child: Text(text, style: const TextStyle(fontSize: 14))),
         ],
       ),
     );
@@ -481,16 +476,11 @@ class _CoursePlayerScreenState extends State<CoursePlayerScreen>
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: const TextStyle(fontWeight: FontWeight.w600),
                 ),
                 Text(
                   subtitle,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[600],
-                  ),
+                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                 ),
               ],
             ),
@@ -528,9 +518,7 @@ class _CoursePlayerScreenState extends State<CoursePlayerScreen>
                   children: [
                     Text(
                       name,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w600,
-                      ),
+                      style: const TextStyle(fontWeight: FontWeight.w600),
                     ),
                     Row(
                       children: List.generate(
@@ -548,13 +536,9 @@ class _CoursePlayerScreenState extends State<CoursePlayerScreen>
             ],
           ),
           const SizedBox(height: 8),
-          Text(
-            review,
-            style: const TextStyle(fontSize: 14),
-          ),
+          Text(review, style: const TextStyle(fontSize: 14)),
         ],
       ),
     );
   }
 }
-
