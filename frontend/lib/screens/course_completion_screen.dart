@@ -26,23 +26,21 @@ class CourseCompletedCard extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // ======================================================
-            // CONFETTI + ICON (UPDATED TO MATCH UI EXACTLY)
-            // ======================================================
+          
             SizedBox(
               height: 260,
               child: Stack(
                 alignment: Alignment.center,
                 clipBehavior: Clip.none,
                 children: [
-                  // ⭐ Yellow star — lowered
+                  // yellow star
                   Positioned(
                     top: 50,
                     right: 20,
                     child: Icon(Icons.star, size: 18, color: Color(0xFFFFC727)),
                   ),
 
-                  // — Blue slash — lowered
+                  // blue slash
                   Positioned(
                     top: 50,
                     left: 110,
@@ -52,7 +50,7 @@ class CourseCompletedCard extends StatelessWidget {
                       angle: -5.2,   // EXACT angle from screenshot
                     ),
                   ),
-                  // — Green slash — lowered
+                  // green slash
                   Positioned(
                     top: 58,
                     left: 130,
@@ -62,14 +60,14 @@ class CourseCompletedCard extends StatelessWidget {
                       angle: -5.2,   // EXACT angle from screenshot
                     ),
                   ),
-                  // • Orange dot — lowered
+                  // • orange dot 
                   Positioned(
                     top: 70,
                     left: 95,
                     child: _dot(12, Color(0xFFFFA41B)),
                   ),
 
-                  // • Brown dot — lowered
+                  // • brown dot 
                   Positioned(
                     top: 80,
                     right: 70,
@@ -77,14 +75,14 @@ class CourseCompletedCard extends StatelessWidget {
                     child: _dot(12, Color(0xFF7B4F3A)),
                   ),
 
-                  // ⭐ Red star — left mid
+                  // red star 
                   Positioned(
                     top: 125,
                     left: 50,
                     child: Icon(Icons.star, size: 16, color: Color(0xFFFF4A4A)),
                   ),
 
-                  // • Teal dot — mid-left
+                  // green dot
                   Positioned(
                     top: 150,
                     left: 60,
@@ -92,14 +90,14 @@ class CourseCompletedCard extends StatelessWidget {
                     child: _dot(10, Color(0xFF03DAC6)),
                   ),
 
-                  // ▲ Green triangle — mid-right
+                  // green triangle
                   Positioned(
                     top: 150,
                     right: 20,
                     child: _triangle(16, Color(0xFF2EAF59)),
                   ),
 
-                  // ▲ Blue triangle — bottom-left
+                  // blue triangle
                   Positioned(
                     top: 250,
                     left: 50,
@@ -107,7 +105,7 @@ class CourseCompletedCard extends StatelessWidget {
                     child: _triangle(18, Color.fromARGB(255, 27, 16, 70)),
                   ),
 
-                  // 🎧 200px headset icon
+                  //headgraduation icon
                   Positioned(
                     top: 90,
                     child: Image.asset(
@@ -122,9 +120,7 @@ class CourseCompletedCard extends StatelessWidget {
 
             const SizedBox(height: 18),
 
-            // ======================================================
-            // TITLE
-            // ======================================================
+            
             const Text(
               "Course Completed",
               style: TextStyle(
@@ -148,9 +144,7 @@ class CourseCompletedCard extends StatelessWidget {
 
             const SizedBox(height: 20),
 
-            // ======================================================
-            // STAR RATING (FINAL FIXED VERSION)
-            // ======================================================
+        
             AnimatedStarRating(
               initialRating: 4,
               onRatingSelected: (_) {},
@@ -158,9 +152,7 @@ class CourseCompletedCard extends StatelessWidget {
 
             const SizedBox(height: 28),
 
-            // ======================================================
-            // BUTTON
-            // ======================================================
+          
             reviewButton(buttonBlue),
           ],
         ),
@@ -168,9 +160,6 @@ class CourseCompletedCard extends StatelessWidget {
     );
   }
 
-  // ------------------------------------------------------
-  // CONFETTI HELPERS
-  // ------------------------------------------------------
 
   Widget _dot(double size, Color color) {
     return Container(
@@ -203,7 +192,7 @@ class CourseCompletedCard extends StatelessWidget {
   }
 }
 
-// Draw triangle shapes
+// all triangle shapes
 class _TrianglePainter extends CustomPainter {
   final Color color;
   _TrianglePainter(this.color);
@@ -225,9 +214,7 @@ class _TrianglePainter extends CustomPainter {
   bool shouldRepaint(_) => false;
 }
 
-// ======================================================
-// ⭐ FINAL STAR RATING — ERROR-PROOF VERSION
-// ======================================================
+
 
 class AnimatedStarRating extends StatefulWidget {
   final int initialRating;
@@ -301,9 +288,6 @@ class _AnimatedStarRatingState extends State<AnimatedStarRating>
   }
 }
 
-// ======================================================
-// BLUE BUTTON
-// ======================================================
 
 Widget reviewButton(Color blue) {
   return Container(
