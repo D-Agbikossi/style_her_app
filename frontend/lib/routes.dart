@@ -12,11 +12,12 @@ import 'screens/onboarding_screen.dart';
 import 'screens/signup_screen.dart';
 import 'screens/top_mentors_screen.dart';
 import 'screens/mentor_info_screen.dart';
-import 'screens/course_detail_screen.dart';
+import 'screens/simple_course_detail_screen.dart';
 // 🌟 IMPORT THE CERTIFICATE SCREEN 🌟
 import 'screens/course_certification_screen.dart';
 // 🌟 IMPORT THE CURRICULUM DETAIL SCREEN 🌟
 import 'screens/curriculum_detail.dart';
+import 'screens/course_player_screen.dart';
 import 'screens/payment_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/help_center_screen.dart';
@@ -43,6 +44,7 @@ class AppRoutes {
   static const String profile = '/profile';
   // 🌟 FIX: ADD MISSING CURRICULUM DETAIL ROUTE CONSTANT 🌟
   static const String curriculumDetail = '/curriculum-detail';
+  static const String coursePlayer = '/course-player';
   static const String payment = '/payment';
   static const String settings = '/settings';
   static const String helpCenter = '/help-center';
@@ -117,6 +119,15 @@ class AppRoutes {
         return _buildRoute(
           routeSettings,
           const Scaffold(body: Center(child: Text('Curriculum ID missing'))),
+        );
+
+      case coursePlayer:
+        if (args is String) {
+          return _buildRoute(routeSettings, CoursePlayerScreen(courseId: args));
+        }
+        return _buildRoute(
+          routeSettings,
+          const Scaffold(body: Center(child: Text('Course ID missing'))),
         );
 
       case payment:
