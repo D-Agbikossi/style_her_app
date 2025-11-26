@@ -9,9 +9,16 @@
 
 import 'package:flutter/material.dart';
 
+// Screen imports
+import 'package:frontend/routes.dart';
+
+// Theme imports
+import '../main.dart';
+
 // Import for navigation
 import 'bottom_navigation_screen.dart';
-// --- END IMPORT ---
+
+const Color kButtonBlue = Color(0xFF6B86D4);
 
 class InterestScreen extends StatefulWidget {
   const InterestScreen({super.key});
